@@ -1,31 +1,32 @@
 package com.pixelstar;
 
 import com.badlogic.gdx.ApplicationAdapter;
-import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-import com.badlogic.gdx.utils.ScreenUtils;
+import com.pixelstar.gameobject.GameObject;
+
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Application class
+ *
+ * @author StrangeClone
+ */
 
 public class PixelStar extends ApplicationAdapter {
-	SpriteBatch batch;
-	Texture img;
-	
-	@Override
-	public void create () {
-		batch = new SpriteBatch();
-		img = new Texture("badlogic.jpg");
-	}
+    /**
+     * List of game objects that will be rendered in the screen
+     */
+    List<GameObject> gameObjects;
 
-	@Override
-	public void render () {
-		ScreenUtils.clear(1, 0, 0, 1);
-		batch.begin();
-		batch.draw(img, 0, 0);
-		batch.end();
-	}
-	
-	@Override
-	public void dispose () {
-		batch.dispose();
-		img.dispose();
-	}
+    @Override
+    public void create() {
+        gameObjects = new ArrayList<>();
+    }
+
+    @Override
+    public void render() {
+        for(GameObject object : gameObjects) {
+            object.update();
+        }
+    }
 }
