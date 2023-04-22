@@ -7,6 +7,16 @@ screen and its son classes.
 classDiagram
 class GameObject {
     <<Abstract>>
+    + PixelStar game
     + update()
 }
+class Floor {
+    + final static float FLOOR_DIMENSIONS
+    - final Rectangle RECTANGLE
+    + static Texture floorTexture
+    + Floor(Vector2)
+    + Floor(float,float)
+    + update()
+}
+Floor <|-- GameObject
 ```
