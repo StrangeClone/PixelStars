@@ -18,5 +18,19 @@ class Floor {
     + Floor(float,float)
     + update()
 }
-Floor <|-- GameObject
+GameObject <|-- Floor
+class Collider {
+    <<Interface>>
+    + boolean collides(Rectangle)
+    + boolean collides(Vector2)
+}
+class HardObject {
+    <<Abstract>>
+    - Texture texture
+    - Rectangle rectangle
+    + boolean collides(Rectangle)
+    + boolean collides(Vector2)
+}
+GameObject <|-- HardObject
+Collider <|-- HardObject
 ```
