@@ -42,34 +42,37 @@ public class Player extends Creature {
          */
         @Override
         public boolean keyDown(int keycode) {
-            if (movementDirection.y == 0 && movementDirection.x == 0) {
-                if (keycode == Input.Keys.W) {
-                    movementDirection.y = 1;
-                } else if (keycode == Input.Keys.S) {
-                    movementDirection.y = -1;
-                } else if (keycode == Input.Keys.D) {
-                    movementDirection.x = 1;
-                } else if (keycode == Input.Keys.A) {
-                    movementDirection.x = -1;
-                }
+            if (keycode == Input.Keys.W) {
+                movementDirection.x = 0;
+                movementDirection.y = 1;
+            } else if (keycode == Input.Keys.S) {
+                movementDirection.x = 0;
+                movementDirection.y = -1;
+            } else if (keycode == Input.Keys.D) {
+                movementDirection.x = 1;
+                movementDirection.y = 0;
+            } else if (keycode == Input.Keys.A) {
+                movementDirection.x = -1;
+                movementDirection.y = 0;
             }
             return true;
         }
 
         /**
-         * When a key is released
+         * When a key is released:
+         * Key W | S | A | D: stops the player if no other movement key is pressed
          *
          * @param keycode one of the constants in {@link Input.Keys}
          * @return true
          */
         @Override
         public boolean keyUp(int keycode) {
-            if (movementDirection.x != 0 || movementDirection.y != 0) {
-                if (keycode == Input.Keys.W || keycode == Input.Keys.S ||
-                        keycode == Input.Keys.A || keycode == Input.Keys.D) {
-                    movementDirection.y = 0;
-                    movementDirection.x = 0;
-                }
+            if ((keycode == Input.Keys.W && movementDirection.x == 0 && movementDirection.y == 1)
+                    || (keycode == Input.Keys.S && movementDirection.x == 0 && movementDirection.y == -1)
+                    || (keycode == Input.Keys.D && movementDirection.x == 1 && movementDirection.y == 0)
+                    || (keycode == Input.Keys.A && movementDirection.x == -1 && movementDirection.y == 0)) {
+                movementDirection.x = 0;
+                movementDirection.y = 0;
             }
             return true;
         }
