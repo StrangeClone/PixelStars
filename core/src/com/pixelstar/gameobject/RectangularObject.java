@@ -3,6 +3,11 @@ package com.pixelstar.gameobject;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 
+/**
+ * For all Objects that have a texture and a rectangular shape
+ *
+ * @author StrangeClone
+ */
 public class RectangularObject extends GameObject {
     /**
      * The texture of this object, that will be rendered on screen

@@ -5,6 +5,11 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 
+/**
+ * Wall, defines the rooms in the map
+ *
+ * @author StrangeClone
+ */
 public class Wall extends HardObject {
     /**
      * Texture of all the walls
