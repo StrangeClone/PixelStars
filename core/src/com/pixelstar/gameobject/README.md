@@ -7,18 +7,23 @@ screen and its son classes.
 classDiagram
 class GameObject {
     <<Abstract>>
-    + PixelStar game
+    + static PixelStar game
     + update()
 }
+class RectangularObject {
+    <<Abstract>>
+    # Texture texture
+    # Rectangle rectangle
+    + RectangularObject(Texture, Rectangle)
+    + update()
+}
+GameObject <|-- RectangularObject
 class Floor {
-    + final static float FLOOR_DIMENSIONS
-    - final Rectangle RECTANGLE
     + static Texture floorTexture
     + Floor(Vector2)
     + Floor(float,float)
-    + update()
 }
-GameObject <|-- Floor
+RectangularObject <|-- Floor
 class Collider {
     <<Interface>>
     + boolean collides(Rectangle)
@@ -26,11 +31,16 @@ class Collider {
 }
 class HardObject {
     <<Abstract>>
-    - Texture texture
-    - Rectangle rectangle
+    + HardObject (Texture, Rectangle)
     + boolean collides(Rectangle)
     + boolean collides(Vector2)
 }
 GameObject <|-- HardObject
 Collider <|-- HardObject
+class Wall {
+    + static Texture wallTexture
+    + Wall(Vector2)
+    + Wall(float, float)
+}
+HardObject <|-- Wall
 ```

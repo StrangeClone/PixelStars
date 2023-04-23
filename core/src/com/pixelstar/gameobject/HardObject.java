@@ -9,27 +9,33 @@ import com.badlogic.gdx.math.Vector2;
  *
  * @author StrangeClone
  */
-public abstract class HardObject extends GameObject implements Collider {
-    private final Texture texture;
-    private final Rectangle rectangle;
+public abstract class HardObject extends RectangularObject implements Collider {
 
+    /**
+     * Creates an HardObject with the specified texture and coordinates
+     *
+     * @param texture   the texture that this Object will have
+     * @param rectangle the rectangular space this Object will take
+     */
     public HardObject(Texture texture, Rectangle rectangle) {
-        this.texture = texture;
-        this.rectangle = rectangle;
+        super(texture, rectangle);
     }
 
+    /**
+     * @param rectangle a rectangle
+     * @return if this Object collides with the specified rectangle
+     */
     @Override
     public boolean collides(Rectangle rectangle) {
         return this.rectangle.overlaps(rectangle);
     }
 
+    /**
+     * @param point a point
+     * @return if this Object contains the specified point
+     */
     @Override
     public boolean collides(Vector2 point) {
         return rectangle.contains(point);
-    }
-
-    @Override
-    public void update() {
-        game.getBatch().draw(texture, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
     }
 }

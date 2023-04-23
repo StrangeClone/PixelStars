@@ -9,6 +9,15 @@ import com.badlogic.gdx.math.Vector2;
  * @author StrangeClone
  */
 public interface Collider {
-    boolean collides(Rectangle other);
-    boolean collides(Vector2 other);
+    /**
+     * @param rectangle a rectangle
+     * @return if this GameObject is colliding with the specified rectangle
+     */
+    boolean collides(Rectangle rectangle);
+
+    /**
+     * @param point a point
+     * @return if this GameObject contains the specified point
+     */
+    boolean collides(Vector2 point);
 }

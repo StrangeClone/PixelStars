@@ -9,6 +9,7 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.Floor;
 import com.pixelstar.gameobject.GameObject;
+import com.pixelstar.gameobject.Wall;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,6 +21,11 @@ import java.util.List;
  */
 
 public class PixelStar extends ApplicationAdapter {
+    /**
+     * Dimensions of a single tile in the game (in cm);
+     * This dimension will be used as a sort of standard;
+     */
+    public static final float SINGLE_TILE_DIMENSION = 50.f;
     /**
      * List of game objects that will be rendered in the screen
      */
@@ -38,12 +44,14 @@ public class PixelStar extends ApplicationAdapter {
         GameObject.game = this;
 
         Floor.floorTexture = new Texture(Gdx.files.internal("floor.png"));
+        Wall.wallTexture = new Texture(Gdx.files.internal("wall.png"));
 
         gameObjects = new ArrayList<>();
         for(int x = 0; x < 10; x++) {
             for(int y = 0; y < 10; y++) {
-                gameObjects.add(new Floor(x * Floor.FLOOR_DIMENSION, y * Floor.FLOOR_DIMENSION));
+                gameObjects.add(new Floor(x * SINGLE_TILE_DIMENSION, y * SINGLE_TILE_DIMENSION));
             }
+            gameObjects.add(new Wall(x * SINGLE_TILE_DIMENSION, 10 * SINGLE_TILE_DIMENSION));
         }
 
         batch = new SpriteBatch();
