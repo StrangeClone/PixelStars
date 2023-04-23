@@ -6,11 +6,10 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
-import com.pixelstar.gameobject.Floor;
-import com.pixelstar.gameobject.GameObject;
-import com.pixelstar.gameobject.Wall;
+import com.pixelstar.gameobject.*;
 import com.pixelstar.gameobject.creature.Player;
 
 import java.util.ArrayList;
@@ -34,6 +33,10 @@ public class PixelStar extends ApplicationAdapter {
      */
     List<GameObject> gameObjects;
     /**
+     * List of references to all GameObjects that can collide with each other
+     */
+    List<Collider> colliders;
+    /**
      * Reference to the player
      */
     Player player;
@@ -55,14 +58,15 @@ public class PixelStar extends ApplicationAdapter {
         Player.playerTexture = new Texture(Gdx.files.internal("player.png"));
 
         gameObjects = new ArrayList<>();
+        colliders = new ArrayList<>();
         for (int x = 0; x < 10; x++) {
             for (int y = 0; y < 10; y++) {
-                gameObjects.add(new Floor(x * SINGLE_TILE_DIMENSION, y * SINGLE_TILE_DIMENSION));
+                addGameObject(new Floor(x * SINGLE_TILE_DIMENSION, y * SINGLE_TILE_DIMENSION));
             }
-            gameObjects.add(new Wall(x * SINGLE_TILE_DIMENSION, 10 * SINGLE_TILE_DIMENSION));
+            addGameObject(new Wall(x * SINGLE_TILE_DIMENSION, 10 * SINGLE_TILE_DIMENSION));
         }
         player = new Player(new Vector2(0, 0));
-        gameObjects.add(player);
+        addGameObject(player);
 
         batch = new SpriteBatch();
 
@@ -91,5 +95,30 @@ public class PixelStar extends ApplicationAdapter {
 
     public SpriteBatch getBatch() {
         return batch;
+    }
+
+    /**
+     * @param rectangle a rectangle
+     * @return true if the rectangle collides with one of the Colliders of this class
+     */
+    public boolean checkCollision(Rectangle rectangle) {
+        for (Collider collider : colliders) {
+            if (collider.collides(rectangle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Adds a GameObject, updating also the collider list, if necessary
+     *
+     * @param object the GameObject to add
+     */
+    private void addGameObject(GameObject object) {
+        gameObjects.add(object);
+        if (object instanceof Collider) {
+            colliders.add((Collider) object);
+        }
     }
 }

@@ -27,7 +27,7 @@ public abstract class HardObject extends RectangularObject implements Collider {
      */
     @Override
     public boolean collides(Rectangle rectangle) {
-        return this.rectangle.overlaps(rectangle);
+        return this.rectangle != rectangle && this.rectangle.overlaps(rectangle);
     }
 
     /**

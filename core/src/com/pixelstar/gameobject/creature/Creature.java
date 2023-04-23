@@ -57,13 +57,22 @@ public abstract class Creature extends HardObject {
     }
 
     /**
-     * Draws and moves the creature
+     * Draws and moves the creature. If the movement makes the creature collides with something,
+     * the creature will stop.
      */
     @Override
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
+        float oldX = rectangle.x;
+        float oldY = rectangle.y;
         rectangle.x += movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER;
         rectangle.y += movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER;
+        if(game.checkCollision(rectangle)) {
+            rectangle.x = oldX;
+            rectangle.y = oldY;
+            movementDirection.x = 0;
+            movementDirection.y = 0;
+        }
         super.update();
     }
 }
