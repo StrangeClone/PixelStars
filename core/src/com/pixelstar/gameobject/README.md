@@ -26,14 +26,14 @@ class Floor {
 RectangularObject <|-- Floor
 class Collider {
     <<Interface>>
-    + boolean collides(Rectangle)
-    + boolean collides(Vector2)
+    + collides(Rectangle) boolean
+    + collides(Vector2) boolean
 }
 class HardObject {
     <<Abstract>>
     + HardObject (Texture, Rectangle)
-    + boolean collides(Rectangle)
-    + boolean collides(Vector2)
+    + collides(Rectangle) boolean
+    + collides(Vector2) boolean
 }
 GameObject <|-- HardObject
 Collider <|-- HardObject

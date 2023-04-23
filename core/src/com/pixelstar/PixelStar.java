@@ -6,10 +6,12 @@ import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.Floor;
 import com.pixelstar.gameobject.GameObject;
 import com.pixelstar.gameobject.Wall;
+import com.pixelstar.gameobject.creature.Player;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -26,10 +28,15 @@ public class PixelStar extends ApplicationAdapter {
      * This dimension will be used as a sort of standard;
      */
     public static final float SINGLE_TILE_DIMENSION = 50.f;
+
     /**
      * List of game objects that will be rendered in the screen
      */
     List<GameObject> gameObjects;
+    /**
+     * Reference to the player
+     */
+    Player player;
     /**
      * Batch that will render all the GameObjects
      */
@@ -45,14 +52,17 @@ public class PixelStar extends ApplicationAdapter {
 
         Floor.floorTexture = new Texture(Gdx.files.internal("floor.png"));
         Wall.wallTexture = new Texture(Gdx.files.internal("wall.png"));
+        Player.playerTexture = new Texture(Gdx.files.internal("player.png"));
 
         gameObjects = new ArrayList<>();
-        for(int x = 0; x < 10; x++) {
-            for(int y = 0; y < 10; y++) {
+        for (int x = 0; x < 10; x++) {
+            for (int y = 0; y < 10; y++) {
                 gameObjects.add(new Floor(x * SINGLE_TILE_DIMENSION, y * SINGLE_TILE_DIMENSION));
             }
             gameObjects.add(new Wall(x * SINGLE_TILE_DIMENSION, 10 * SINGLE_TILE_DIMENSION));
         }
+        player = new Player(new Vector2(0, 0));
+        gameObjects.add(player);
 
         batch = new SpriteBatch();
 
@@ -63,11 +73,12 @@ public class PixelStar extends ApplicationAdapter {
     @Override
     public void render() {
         ScreenUtils.clear(Color.BLACK);
+        camera.position.set(player.getPosition(), 0);
         camera.update();
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        for(GameObject object : gameObjects) {
+        for (GameObject object : gameObjects) {
             object.update();
         }
         batch.end();
