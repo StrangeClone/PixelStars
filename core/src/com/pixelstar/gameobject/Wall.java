@@ -22,9 +22,10 @@ public class Wall extends HardObject {
      * @param center the position of the center of this wall
      */
     public Wall(Vector2 center) {
-        super(wallTexture, new Rectangle(center.x - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                center.y - PixelStar.SINGLE_TILE_DIMENSION,
-                PixelStar.SINGLE_TILE_DIMENSION, PixelStar.SINGLE_TILE_DIMENSION));
+        super(wallTexture, new Rectangle(center.x - PixelStar.PIXEL_DIMENSIONS * wallTexture.getWidth() / 2,
+                center.y - PixelStar.PIXEL_DIMENSIONS * wallTexture.getHeight() / 2,
+                PixelStar.PIXEL_DIMENSIONS * wallTexture.getWidth(),
+                PixelStar.PIXEL_DIMENSIONS * wallTexture.getHeight()));
     }
 
     /**
@@ -34,8 +35,9 @@ public class Wall extends HardObject {
      * @param yCenter the y of position of the center of this wall
      */
     public Wall(float xCenter, float yCenter) {
-        super(wallTexture, new Rectangle(xCenter - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                yCenter - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                PixelStar.SINGLE_TILE_DIMENSION, PixelStar.SINGLE_TILE_DIMENSION));
+        super(wallTexture, new Rectangle(xCenter - PixelStar.PIXEL_DIMENSIONS * wallTexture.getWidth() / 2,
+                yCenter - PixelStar.PIXEL_DIMENSIONS * wallTexture.getHeight() / 2,
+                PixelStar.PIXEL_DIMENSIONS * wallTexture.getWidth(),
+                PixelStar.PIXEL_DIMENSIONS * wallTexture.getHeight()));
     }
 }

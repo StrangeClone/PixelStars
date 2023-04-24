@@ -5,6 +5,10 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.gameobject.HardObject;
+import com.pixelstar.gameobject.RectangularObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Class for enemies, NPCs, player
@@ -22,6 +26,10 @@ public abstract class Creature extends HardObject {
      * The speed of the Creature (m/s)
      */
     protected float speed;
+    /**
+     * Children GameObjects of this Creature
+     */
+    protected List<RectangularObject> children;
 
     /**
      * Creates a Creature, with the specified texture, center and dimensions
@@ -33,6 +41,7 @@ public abstract class Creature extends HardObject {
     public Creature(Texture texture, Vector2 center, float dimension) {
         super(texture, new Rectangle(center.x - dimension / 2, center.y - dimension / 2, dimension, dimension));
         movementDirection = new Vector2(0, 0);
+        children = new ArrayList<>();
     }
 
     public float getSpeed() {
@@ -52,10 +61,6 @@ public abstract class Creature extends HardObject {
         this.speed = speed;
     }
 
-    public Vector2 getPosition() {
-        return new Vector2(rectangle.x + rectangle.width / 2, rectangle.y + rectangle.height / 2);
-    }
-
     /**
      * Draws and moves the creature. If the movement makes the creature collides with something,
      * the creature will stop.
@@ -65,14 +70,27 @@ public abstract class Creature extends HardObject {
         float delta = Gdx.graphics.getDeltaTime();
         float oldX = rectangle.x;
         float oldY = rectangle.y;
-        rectangle.x += movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER;
-        rectangle.y += movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER;
-        if(game.checkCollision(rectangle)) {
+        move(movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER,
+                movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER);
+        if (game.checkCollision(rectangle)) {
             rectangle.x = oldX;
             rectangle.y = oldY;
             movementDirection.x = 0;
             movementDirection.y = 0;
         }
+        else {
+            for(RectangularObject child : children) {
+                child.move(movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER,
+                        movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER);
+            }
+        }
+        for(RectangularObject child : children) {
+            child.update();
+        }
         super.update();
+    }
+
+    public void addChild(RectangularObject newChild) {
+        children.add(newChild);
     }
 }

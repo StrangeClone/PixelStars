@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
+import com.pixelstar.gameobject.weapons.PlasmaPistol;
 
 /**
  * Avatar of the player
@@ -24,9 +25,10 @@ public class Player extends Creature {
      * @param center the (initial) center of the player
      */
     public Player(Vector2 center) {
-        super(playerTexture, center, PixelStar.SINGLE_TILE_DIMENSION * 3);
+        super(playerTexture, center, PixelStar.PIXEL_DIMENSIONS * 32);
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
         setSpeed(4);
+        addChild(new PlasmaPistol(this));
     }
 
     private class PlayerInputAdapter extends InputAdapter {
@@ -73,6 +75,17 @@ public class Player extends Creature {
                     || (keycode == Input.Keys.A && movementDirection.x == -1 && movementDirection.y == 0)) {
                 movementDirection.x = 0;
                 movementDirection.y = 0;
+            }
+            return true;
+        }
+
+        @Override
+        public boolean scrolled(float amountX, float amountY) {
+            if(amountY > 0) {
+                game.ZoomIn();
+            }
+            else if(amountY < 0) {
+                game.ZoomOut();
             }
             return true;
         }

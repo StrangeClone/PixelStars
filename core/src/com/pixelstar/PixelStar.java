@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.*;
 import com.pixelstar.gameobject.creature.Player;
+import com.pixelstar.gameobject.weapons.PlasmaPistol;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +24,9 @@ import java.util.List;
 
 public class PixelStar extends ApplicationAdapter {
     /**
-     * Dimensions of a single tile in the game (in cm);
-     * This dimension will be used as a sort of standard;
+     * Dimensions of a single pixel in the game (in cm)
      */
-    public static final float SINGLE_TILE_DIMENSION = 50.f;
+    public static final float PIXEL_DIMENSIONS = 2.5f;
 
     /**
      * List of game objects that will be rendered in the screen
@@ -48,6 +48,10 @@ public class PixelStar extends ApplicationAdapter {
      * Camera of the scene
      */
     OrthographicCamera camera;
+    /**
+     * The scene zoom
+     */
+    float zoom = 1.0f;
 
     @Override
     public void create() {
@@ -56,14 +60,15 @@ public class PixelStar extends ApplicationAdapter {
         Floor.floorTexture = new Texture(Gdx.files.internal("floor.png"));
         Wall.wallTexture = new Texture(Gdx.files.internal("wall.png"));
         Player.playerTexture = new Texture(Gdx.files.internal("player.png"));
+        PlasmaPistol.plasmaPistolTexture = new Texture(Gdx.files.internal("plasmaPistol.png"));
 
         gameObjects = new ArrayList<>();
         colliders = new ArrayList<>();
         for (int x = 0; x < 10; x++) {
             for (int y = 0; y < 10; y++) {
-                addGameObject(new Floor(x * SINGLE_TILE_DIMENSION, y * SINGLE_TILE_DIMENSION));
+                addGameObject(new Floor(x * PIXEL_DIMENSIONS * 20, y * PIXEL_DIMENSIONS * 20));
             }
-            addGameObject(new Wall(x * SINGLE_TILE_DIMENSION, 10 * SINGLE_TILE_DIMENSION));
+            addGameObject(new Wall(x * PIXEL_DIMENSIONS * 20, 10 * PIXEL_DIMENSIONS * 20));
         }
         player = new Player(new Vector2(0, 0));
         addGameObject(player);
@@ -71,7 +76,7 @@ public class PixelStar extends ApplicationAdapter {
         batch = new SpriteBatch();
 
         camera = new OrthographicCamera();
-        camera.setToOrtho(false, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+        camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
     }
 
     @Override
@@ -90,7 +95,23 @@ public class PixelStar extends ApplicationAdapter {
 
     @Override
     public void resize(int width, int height) {
-        camera.setToOrtho(false, width, height);
+        camera.setToOrtho(false, width * zoom, height * zoom);
+    }
+
+    /**
+     * Increases zoom
+     */
+    public void ZoomIn() {
+        zoom /= 0.9f;
+        camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
+    }
+
+    /**
+     * Decrease zoom
+     */
+    public void ZoomOut() {
+        zoom *= 0.9f;
+        camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
     }
 
     public SpriteBatch getBatch() {

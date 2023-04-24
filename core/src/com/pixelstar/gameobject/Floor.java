@@ -22,9 +22,10 @@ public class Floor extends RectangularObject {
      * @param centerPosition the position of the center
      */
     public Floor(Vector2 centerPosition) {
-        super(floorTexture, new Rectangle(centerPosition.x - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                centerPosition.y - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                PixelStar.SINGLE_TILE_DIMENSION, PixelStar.SINGLE_TILE_DIMENSION));
+        super(floorTexture, new Rectangle(centerPosition.x - PixelStar.PIXEL_DIMENSIONS * floorTexture.getWidth() / 2,
+                centerPosition.y - PixelStar.PIXEL_DIMENSIONS * floorTexture.getHeight() / 2,
+                PixelStar.PIXEL_DIMENSIONS * floorTexture.getWidth(),
+                PixelStar.PIXEL_DIMENSIONS * floorTexture.getHeight()));
     }
 
     /**
@@ -34,8 +35,9 @@ public class Floor extends RectangularObject {
      * @param yCenter the y of the position of the center
      */
     public Floor(float xCenter, float yCenter) {
-        super(floorTexture, new Rectangle(xCenter - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                yCenter - PixelStar.SINGLE_TILE_DIMENSION / 2,
-                PixelStar.SINGLE_TILE_DIMENSION, PixelStar.SINGLE_TILE_DIMENSION));
+        super(floorTexture, new Rectangle(xCenter - PixelStar.PIXEL_DIMENSIONS * floorTexture.getWidth() / 2,
+                yCenter - PixelStar.PIXEL_DIMENSIONS * floorTexture.getHeight() / 2,
+                PixelStar.PIXEL_DIMENSIONS * floorTexture.getWidth(),
+                PixelStar.PIXEL_DIMENSIONS * floorTexture.getHeight()));
     }
 }
