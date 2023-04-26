@@ -18,6 +18,10 @@ public class Player extends Creature {
      * Player's texture
      */
     public static Texture playerTexture;
+    /**
+     * Index of the Player's weapon in the children list
+     */
+    int weaponIndex;
 
     /**
      * Creates a player in the specified position
@@ -27,11 +31,26 @@ public class Player extends Creature {
     public Player(Vector2 center) {
         super(playerTexture, center, PixelStar.PIXEL_DIMENSIONS * 32);
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
-        setSpeed(4);
+        setSpeed(400);
         addChild(new PlasmaPistol(this));
+        weaponIndex = 0;
     }
 
     private class PlayerInputAdapter extends InputAdapter {
+
+        @Override
+        public boolean touchDown(int screenX, int screenY, int pointer, int button) {
+            if(button == Input.Buttons.LEFT) {
+                if(children.get(weaponIndex) instanceof PlasmaPistol) {
+                    ((PlasmaPistol) children.get(weaponIndex)).shoot(
+                            new Vector2(getPosition().x + screenX - Gdx.graphics.getWidth() / 2.f
+                                    , getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
+                    );
+                }
+            }
+            return true;
+        }
+
         /**
          * When a key is pressed:
          * key W: moves player north

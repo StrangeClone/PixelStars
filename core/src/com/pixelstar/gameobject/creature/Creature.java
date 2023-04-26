@@ -16,14 +16,13 @@ import java.util.List;
  * @author StrangeClone
  */
 public abstract class Creature extends HardObject {
-    static final float CENTIMETERS_IN_METER = 100.f;
     /**
      * The direction of the Creature's movement, as a normal vector.
      * It will be (0,0) if the creature isn't moving
      */
     protected Vector2 movementDirection;
     /**
-     * The speed of the Creature (m/s)
+     * The speed of the Creature (cm/s)
      */
     protected float speed;
     /**
@@ -42,6 +41,10 @@ public abstract class Creature extends HardObject {
         super(texture, new Rectangle(center.x - dimension / 2, center.y - dimension / 2, dimension, dimension));
         movementDirection = new Vector2(0, 0);
         children = new ArrayList<>();
+    }
+
+    public float getDimension() {
+        return rectangle.width;
     }
 
     public float getSpeed() {
@@ -70,21 +73,20 @@ public abstract class Creature extends HardObject {
         float delta = Gdx.graphics.getDeltaTime();
         float oldX = rectangle.x;
         float oldY = rectangle.y;
-        move(movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER,
-                movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER);
+        move(movementDirection.x * delta * getSpeed(),
+                movementDirection.y * delta * getSpeed());
         if (game.checkCollision(rectangle)) {
             rectangle.x = oldX;
             rectangle.y = oldY;
             movementDirection.x = 0;
             movementDirection.y = 0;
-        }
-        else {
-            for(RectangularObject child : children) {
-                child.move(movementDirection.x * delta * getSpeed() * CENTIMETERS_IN_METER,
-                        movementDirection.y * delta * getSpeed() * CENTIMETERS_IN_METER);
+        } else {
+            for (RectangularObject child : children) {
+                child.move(movementDirection.x * delta * getSpeed(),
+                        movementDirection.y * delta * getSpeed());
             }
         }
-        for(RectangularObject child : children) {
+        for (RectangularObject child : children) {
             child.update();
         }
         super.update();

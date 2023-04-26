@@ -61,6 +61,7 @@ public class PixelStar extends ApplicationAdapter {
         Wall.wallTexture = new Texture(Gdx.files.internal("wall.png"));
         Player.playerTexture = new Texture(Gdx.files.internal("player.png"));
         PlasmaPistol.plasmaPistolTexture = new Texture(Gdx.files.internal("plasmaPistol.png"));
+        PlasmaPistol.plasmaShotTexture = new Texture(Gdx.files.internal("plasmaShot.png"));
 
         gameObjects = new ArrayList<>();
         colliders = new ArrayList<>();
@@ -125,6 +126,18 @@ public class PixelStar extends ApplicationAdapter {
     public boolean checkCollision(Rectangle rectangle) {
         for (Collider collider : colliders) {
             if (collider.collides(rectangle)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * @param point a point
+     * @return true if the point collides with one of the Colliders of this class
+     */
+    public boolean checkCollision(Vector2 point) {
+        for(Collider collider : colliders) {
+            if(collider.collides(point)) {
                 return true;
             }
         }
