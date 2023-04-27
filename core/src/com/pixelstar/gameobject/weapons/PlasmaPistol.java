@@ -48,6 +48,10 @@ public class PlasmaPistol extends RectangularObject {
         PROJECTILES = new ArrayList<>();
     }
 
+    /**
+     * Shoots a projectile directed to the position specified as target
+     * @param target the position of the target
+     */
     public void shoot(Vector2 target) {
         if(holder != null) {
             Vector2 direction = new Vector2(target.x - holder.getPosition().x, target.y - holder.getPosition().y);
