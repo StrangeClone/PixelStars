@@ -4,11 +4,12 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.pixelstar.gameobject.GameObject;
 import com.pixelstar.gameobject.HardObject;
-import com.pixelstar.gameobject.RectangularObject;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * Class for enemies, NPCs, player
@@ -28,7 +29,7 @@ public abstract class Creature extends HardObject {
     /**
      * Children GameObjects of this Creature
      */
-    protected List<RectangularObject> children;
+    protected List<GameObject> children;
 
     /**
      * Creates a Creature, with the specified texture, center and dimensions
@@ -81,18 +82,14 @@ public abstract class Creature extends HardObject {
             movementDirection.x = 0;
             movementDirection.y = 0;
         } else {
-            for (RectangularObject child : children) {
-                child.move(movementDirection.x * delta * getSpeed(),
-                        movementDirection.y * delta * getSpeed());
-            }
+            children.stream().filter(Objects::nonNull).forEach(c -> c.move(movementDirection.x * delta * getSpeed(),
+                    movementDirection.y * delta * getSpeed()));
         }
-        for (RectangularObject child : children) {
-            child.update();
-        }
+        children.stream().filter(Objects::nonNull).forEach(GameObject::update);
         super.update();
     }
 
-    public void addChild(RectangularObject newChild) {
+    public void addChild(GameObject newChild) {
         children.add(newChild);
     }
 }

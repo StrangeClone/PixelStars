@@ -6,6 +6,7 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
+import com.pixelstar.gameobject.weapons.Holdable;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
 
 /**
@@ -15,13 +16,17 @@ import com.pixelstar.gameobject.weapons.PlasmaPistol;
  */
 public class Player extends Creature {
     /**
+     * Index of the Player's weapon in the children list
+     */
+    private final int WEAPON_INDEX = 0;
+    /**
+     * maximum distance
+     */
+    private final static float PICK_UP_RANGE = 100.f;
+    /**
      * Player's texture
      */
     public static Texture playerTexture;
-    /**
-     * Index of the Player's weapon in the children list
-     */
-    int weaponIndex;
 
     /**
      * Creates a player in the specified position
@@ -33,19 +38,52 @@ public class Player extends Creature {
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
         setSpeed(400);
         addChild(new PlasmaPistol(this));
-        weaponIndex = 0;
+    }
+
+    private boolean armed() {
+        return children.get(WEAPON_INDEX) != null;
+    }
+
+    private void dropWeapon() {
+        game.addGameObject(children.get(WEAPON_INDEX));
+        if (children.get(WEAPON_INDEX) instanceof Holdable) {
+            ((Holdable) children.get(WEAPON_INDEX)).drop();
+        }
+        children.set(WEAPON_INDEX, null);
+    }
+
+    private void equip(PlasmaPistol holdable) {
+        game.removeGameObject(holdable);
+        children.set(WEAPON_INDEX, holdable);
+        holdable.pickUp(this);
     }
 
     private class PlayerInputAdapter extends InputAdapter {
-
+        /**
+         * If the player clicks and has a weapon, the weapon will shoot in the specified direction.
+         * If the player doesn't have a weapon and has clicked a weapon, that weapon will be equipped.
+         *
+         * @param screenX The x coordinate, origin is in the upper left corner
+         * @param screenY The y coordinate, origin is in the upper left corner
+         * @param pointer the pointer for the event.
+         * @param button  the button
+         * @return true
+         */
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
-            if(button == Input.Buttons.LEFT) {
-                if(children.get(weaponIndex) instanceof PlasmaPistol) {
-                    ((PlasmaPistol) children.get(weaponIndex)).shoot(
-                            new Vector2(getPosition().x + screenX - Gdx.graphics.getWidth() / 2.f
-                                    , getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
+            if (button == Input.Buttons.LEFT) {
+                if (armed() && children.get(WEAPON_INDEX) instanceof PlasmaPistol) {
+                    ((PlasmaPistol) children.get(WEAPON_INDEX)).shoot(
+                            new Vector2(getPosition().x + screenX - Gdx.graphics.getWidth() / 2.f,
+                                    getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
                     );
+                }
+                Holdable clickedObject = game.gameObjectInScreenPosition(screenX, screenY);
+                if(!armed() && clickedObject instanceof PlasmaPistol) {
+                    PlasmaPistol pistol = (PlasmaPistol) clickedObject;
+                    if(dist(pistol) < PICK_UP_RANGE) {
+                        equip(pistol);
+                    }
                 }
             }
             return true;
@@ -81,7 +119,8 @@ public class Player extends Creature {
 
         /**
          * When a key is released:
-         * Key W | S | A | D: stops the player if no other movement key is pressed
+         * key W | S | A | D: stops the player if no other movement key is pressed
+         * key Q: drop the weapon
          *
          * @param keycode one of the constants in {@link Input.Keys}
          * @return true
@@ -95,15 +134,17 @@ public class Player extends Creature {
                 movementDirection.x = 0;
                 movementDirection.y = 0;
             }
+            if (keycode == Input.Keys.Q && armed()) {
+                dropWeapon();
+            }
             return true;
         }
 
         @Override
         public boolean scrolled(float amountX, float amountY) {
-            if(amountY > 0) {
+            if (amountY > 0) {
                 game.ZoomIn();
-            }
-            else if(amountY < 0) {
+            } else if (amountY < 0) {
                 game.ZoomOut();
             }
             return true;

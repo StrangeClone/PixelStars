@@ -9,6 +9,9 @@ class GameObject {
     <<Abstract>>
     + static PixelStar game
     + update()
+    + getPosition() Vector2
+    + move(float, float)
+    + dist(GameObject) float
 }
 class RectangularObject {
     <<Abstract>>

@@ -16,7 +16,7 @@ import java.util.List;
  *
  * @author StrangeClone
  */
-public class PlasmaPistol extends RectangularObject {
+public class PlasmaPistol extends RectangularObject implements Holdable {
     /**
      * The projectiles this weapon has shot
      */
@@ -46,6 +46,34 @@ public class PlasmaPistol extends RectangularObject {
                 PixelStar.PIXEL_DIMENSIONS * plasmaPistolTexture.getHeight()));
         this.holder = holder;
         PROJECTILES = new ArrayList<>();
+    }
+
+    @Override
+    public boolean held() {
+        return holder != null;
+    }
+
+    @Override
+    public void drop() {
+        if(held()) {
+            rectangle.x = holder.getPosition().x;
+            rectangle.y = holder.getPosition().y;
+            holder = null;
+        }
+    }
+
+    @Override
+    public void pickUp(Creature creature) {
+        if(!held()) {
+            holder = creature;
+            rectangle.x = holder.getPosition().x - PixelStar.PIXEL_DIMENSIONS * ((float) (plasmaPistolTexture.getWidth() / 2) - 13);
+            rectangle.y = holder.getPosition().y - PixelStar.PIXEL_DIMENSIONS * ((float) (plasmaPistolTexture.getHeight() / 2) - 1);
+        }
+    }
+
+    @Override
+    public boolean contains(Vector2 point) {
+        return rectangle.contains(point);
     }
 
     /**

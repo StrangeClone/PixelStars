@@ -11,6 +11,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.*;
 import com.pixelstar.gameobject.creature.Player;
+import com.pixelstar.gameobject.weapons.Holdable;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
 
 import java.util.ArrayList;
@@ -36,6 +37,10 @@ public class PixelStar extends ApplicationAdapter {
      * List of references to all GameObjects that can collide with each other
      */
     List<Collider> colliders;
+    /**
+     * List of references to all GameObjects that can be held by a Creature
+     */
+    List<Holdable> holdableList;
     /**
      * Reference to the player
      */
@@ -65,6 +70,8 @@ public class PixelStar extends ApplicationAdapter {
 
         gameObjects = new ArrayList<>();
         colliders = new ArrayList<>();
+        holdableList = new ArrayList<>();
+
         for (int x = 0; x < 10; x++) {
             for (int y = 0; y < 10; y++) {
                 addGameObject(new Floor(x * PIXEL_DIMENSIONS * 20, y * PIXEL_DIMENSIONS * 20));
@@ -88,9 +95,7 @@ public class PixelStar extends ApplicationAdapter {
 
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
-        for (GameObject object : gameObjects) {
-            object.update();
-        }
+        gameObjects.forEach(GameObject::update);
         batch.end();
     }
 
@@ -123,36 +128,80 @@ public class PixelStar extends ApplicationAdapter {
      * @param rectangle a rectangle
      * @return true if the rectangle collides with one of the Colliders of this class
      */
-    public boolean checkCollision(Rectangle rectangle) {
-        for (Collider collider : colliders) {
-            if (collider.collides(rectangle)) {
-                return true;
-            }
-        }
-        return false;
+    public boolean checkCollision(final Rectangle rectangle) {
+        return colliders.stream().anyMatch(c -> c.collides(rectangle));
     }
     /**
      * @param point a point
      * @return true if the point collides with one of the Colliders of this class
      */
     public boolean checkCollision(Vector2 point) {
-        for(Collider collider : colliders) {
-            if(collider.collides(point)) {
-                return true;
-            }
-        }
-        return false;
+        return colliders.stream().anyMatch(c -> c.collides(point));
     }
 
     /**
-     * Adds a GameObject, updating also the collider list, if necessary
+     * if under the specified position of the screen there's a holdable GameObject
+     * @param screenX The x coordinate, origin is in the upper left corner
+     * @param screenY The y coordinate, origin is in the upper left corner
+     * @return the selected holdable, or null if there's no holdable in the specified point
+     */
+    public Holdable gameObjectInScreenPosition(int screenX, int screenY) {
+        Vector2 point = new Vector2(
+                player.getPosition().x + (screenX - Gdx.graphics.getWidth() / 2.f) * zoom,
+                player.getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f) * zoom
+        );
+        return holdableList.stream().filter(c -> c.contains(point)).findAny().orElse(null);
+    }
+
+    /**
+     * Adds a GameObject, updating also the collider and holdable list, if necessary.
+     * Then, sorts the objects so that colliders will be rendered after non colliders
      *
      * @param object the GameObject to add
      */
-    private void addGameObject(GameObject object) {
+    public void addGameObject(GameObject object) {
         gameObjects.add(object);
         if (object instanceof Collider) {
             colliders.add((Collider) object);
         }
+        if(object instanceof Holdable) {
+            holdableList.add((Holdable) object);
+        }
+        sortGameObjects();
+    }
+
+    /**
+     * Removes a GameObject, updating also the collider and holdable list, if necessary.
+     * Then, sorts the objects so that colliders will be rendered after non colliders
+     *
+     * @param object the GameObject to remove
+     */
+    public void removeGameObject(GameObject object) {
+        gameObjects.remove(object);
+        if(object instanceof Collider) {
+            colliders.remove((Collider) object);
+        }
+        if(object instanceof Holdable) {
+            holdableList.remove((Holdable) object);
+        }
+        sortGameObjects();
+    }
+
+    /**
+     * sorts the objects so that colliders will be rendered after non colliders
+     */
+    private void sortGameObjects() {
+        gameObjects.sort((o1, o2) -> {
+            if(o1 instanceof Collider) {
+                if(o2 instanceof Collider) {
+                    return 0;
+                }else {
+                    return 1;
+                }
+            }else if(o2 instanceof Collider){
+                return -1;
+            }
+            return 0;
+        });
     }
 }

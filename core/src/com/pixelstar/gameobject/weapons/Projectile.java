@@ -51,8 +51,7 @@ public class Projectile extends GameObject {
     @Override
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
-        position.x += direction.x * speed * delta;
-        position.y += direction.y * speed * delta;
+        move(direction.x * speed * delta, direction.y * speed * delta);
         game.getBatch().draw(new TextureRegion(TEXTURE),
                 position.x,
                 position.y,
@@ -62,5 +61,16 @@ public class Projectile extends GameObject {
                 1,
                 1,
                 direction.angleDeg() - 90.f);
+    }
+
+    @Override
+    public Vector2 getPosition() {
+        return new Vector2(position);
+    }
+
+    @Override
+    public void move(float dx, float dy) {
+        position.x += dx;
+        position.y += dy;
     }
 }
