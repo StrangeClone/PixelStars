@@ -1,8 +1,10 @@
 package com.pixelstar.gameobject;
 
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.pixelstar.PixelStar;
 
 /**
  * For all Objects that have a texture and a rectangular shape
@@ -18,6 +20,10 @@ public class RectangularObject extends GameObject {
      * The rectangular space that this Object will occupy on the screen
      */
     protected final Rectangle rectangle;
+    /**
+     * The texture region of this floor
+     */
+    protected TextureRegion textureRegion;
 
     /**
      * Creates a RectangularObject with the specified texture and coordinates
@@ -28,6 +34,9 @@ public class RectangularObject extends GameObject {
     public RectangularObject(Texture texture, Rectangle rectangle) {
         this.texture = texture;
         this.rectangle = rectangle;
+        this.textureRegion = new TextureRegion(texture, 0,0,
+                rectangle.width / (PixelStar.PIXEL_DIMENSIONS * texture.getWidth()),
+                rectangle.height / (PixelStar.PIXEL_DIMENSIONS * texture.getHeight()));
     }
 
     public Vector2 getPosition() {
@@ -47,6 +56,6 @@ public class RectangularObject extends GameObject {
 
     @Override
     public void update() {
-        game.getBatch().draw(texture, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        game.getBatch().draw(textureRegion, rectangle.x, rectangle.y, rectangle.width, rectangle.height);
     }
 }

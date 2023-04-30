@@ -2,6 +2,7 @@ package com.pixelstar;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -13,6 +14,9 @@ import com.pixelstar.gameobject.*;
 import com.pixelstar.gameobject.creature.Player;
 import com.pixelstar.gameobject.weapons.Holdable;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
+import com.pixelstar.terrain.Floor;
+import com.pixelstar.terrain.Starship;
+import com.pixelstar.terrain.Wall;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,28 +62,26 @@ public class PixelStar extends ApplicationAdapter {
      */
     float zoom = 1.0f;
 
+    /**
+     * Manager of the assets of this game
+     */
+    AssetManager assetManager;
+    boolean loadingCompleted = false;
+
     @Override
     public void create() {
         GameObject.game = this;
 
-        Floor.floorTexture = new Texture(Gdx.files.internal("floor.png"));
-        Wall.wallTexture = new Texture(Gdx.files.internal("wall.png"));
-        Player.playerTexture = new Texture(Gdx.files.internal("player.png"));
-        PlasmaPistol.plasmaPistolTexture = new Texture(Gdx.files.internal("plasmaPistol.png"));
-        PlasmaPistol.plasmaShotTexture = new Texture(Gdx.files.internal("plasmaShot.png"));
+        assetManager = new AssetManager();
+        assetManager.load("floor.png", Texture.class);
+        assetManager.load("wall.png", Texture.class);
+        assetManager.load("player.png", Texture.class);
+        assetManager.load("plasmaPistol.png", Texture.class);
+        assetManager.load("plasmaShot.png", Texture.class);
 
         gameObjects = new ArrayList<>();
         colliders = new ArrayList<>();
         holdableList = new ArrayList<>();
-
-        for (int x = 0; x < 10; x++) {
-            for (int y = 0; y < 10; y++) {
-                addGameObject(new Floor(x * PIXEL_DIMENSIONS * 20, y * PIXEL_DIMENSIONS * 20));
-            }
-            addGameObject(new Wall(x * PIXEL_DIMENSIONS * 20, 10 * PIXEL_DIMENSIONS * 20));
-        }
-        player = new Player(new Vector2(0, 0));
-        addGameObject(player);
 
         batch = new SpriteBatch();
 
@@ -87,12 +89,36 @@ public class PixelStar extends ApplicationAdapter {
         camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
     }
 
+    /**
+     * Function called when the asset manager has finished to load the assets, to generate the scene
+     */
+    private void completeLoading() {
+        loadingCompleted = true;
+
+        Floor.floorTexture = assetManager.get("floor.png");
+        Floor.floorTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        Wall.wallTexture = assetManager.get("wall.png");
+        Wall.wallTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
+        Player.playerTexture = assetManager.get("player.png");
+        PlasmaPistol.plasmaPistolTexture = assetManager.get("plasmaPistol.png");
+        PlasmaPistol.plasmaShotTexture = assetManager.get("plasmaShot.png");
+
+        new Starship(45);
+        player = new Player(new Vector2(0, 0));
+        addGameObject(player);
+    }
+
     @Override
     public void render() {
-        ScreenUtils.clear(Color.BLACK);
-        camera.position.set(player.getPosition(), 0);
-        camera.update();
+        if(!loadingCompleted && assetManager.update()) {
+            completeLoading();
+        }
 
+        ScreenUtils.clear(Color.BLACK);
+        if(player != null) {
+            camera.position.set(player.getPosition(), 0);
+            camera.update();
+        }
         batch.setProjectionMatrix(camera.combined);
         batch.begin();
         gameObjects.forEach(GameObject::update);
