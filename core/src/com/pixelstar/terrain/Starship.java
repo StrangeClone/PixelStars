@@ -1,21 +1,23 @@
 package com.pixelstar.terrain;
 
-import com.badlogic.gdx.math.Rectangle;
 import com.pixelstar.PixelStar;
-import com.pixelstar.gameobject.GameObject;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 /**
  * Class for the abandoned starship where the player will move
+ *
+ * @author StrangeClone
  */
 public class Starship {
+    static private final Random STARSHIP_RANDOM = new Random();
     /**
      * The rooms of this ship
      */
-    ArrayList<Rectangle> rooms;
-    static Random starshipRandom = new Random();
+    ArrayList<Room> rooms;
 
     /**
      * Creates a starship, a place where the player will move
@@ -24,8 +26,9 @@ public class Starship {
      */
     public Starship(long seed) {
         generateStarship(seed);
-        for(Rectangle room : rooms) {
-            GameObject.game.addGameObject(new Floor(room));
+        Room.setNearRooms(rooms);
+        for(Room room : rooms) {
+            room.generate();
         }
     }
 
@@ -35,8 +38,8 @@ public class Starship {
      * @param seed the seed used to generate the map
      */
     private void generateStarship(long seed) {
-        starshipRandom.setSeed(seed);
-        int nOfRooms = starshipRandom.nextInt(4, 7);
+        STARSHIP_RANDOM.setSeed(seed);
+        int nOfRooms = STARSHIP_RANDOM.nextInt(4, 7);
         rooms = new ArrayList<>();
         for (int i = 0; i < nOfRooms; i++) {
             generateRoom();
@@ -44,6 +47,7 @@ public class Starship {
         while(!checkOverlappingRooms()){
             fixRooms();
         }
+        addCentralHallway();
         makeMapSymmetric();
     }
 
@@ -53,7 +57,7 @@ public class Starship {
     private void fixRooms(){
         for (int i = 0; i < rooms.size(); i++) {
             for (int o = i + 1; o < rooms.size(); o++) {
-                if (rooms.get(i).overlaps(rooms.get(o))) {
+                if (rooms.get(i).area.overlaps(rooms.get(o).area)) {
                     fixOverlappingRooms(i, o);
                 }
             }
@@ -67,13 +71,13 @@ public class Starship {
      * @param index2 index of the room that will be moved
      */
     private void fixOverlappingRooms(int index1, int index2) {
-        if (starshipRandom.nextBoolean()) {
-            rooms.get(index2).x = rooms.get(index1).x + rooms.get(index1).width;
+        if (STARSHIP_RANDOM.nextBoolean()) {
+            rooms.get(index2).area.x = rooms.get(index1).area.x + rooms.get(index1).area.width;
         } else {
-            if (rooms.get(index2).y <= 0) {
-                rooms.get(index2).y = rooms.get(index1).y - rooms.get(index2).height;
+            if (rooms.get(index2).area.y <= 0) {
+                rooms.get(index2).area.y = rooms.get(index1).area.y - rooms.get(index2).area.height;
             } else {
-                rooms.get(index2).y = rooms.get(index1).y + rooms.get(index1).height;
+                rooms.get(index2).area.y = rooms.get(index1).area.y + rooms.get(index1).area.height;
             }
         }
     }
@@ -84,7 +88,7 @@ public class Starship {
     boolean checkOverlappingRooms(){
         for(int i = 0; i < rooms.size(); i++){
             for(int o = i + 1; o < rooms.size(); o++){
-                if(rooms.get(i).overlaps(rooms.get(o))){
+                if(rooms.get(i).area.overlaps(rooms.get(o).area)){
                     return false;
                 }
             }
@@ -96,9 +100,9 @@ public class Starship {
      * Generate a room, in a random location, with random dimensions
      */
     private void generateRoom() {
-        rooms.add(new Rectangle(0, starshipRandom.nextInt(-20, 60) * PixelStar.PIXEL_DIMENSIONS * 20,
-                starshipRandom.nextInt(10, 30) * PixelStar.PIXEL_DIMENSIONS * 20,
-                starshipRandom.nextInt(10, 30) * PixelStar.PIXEL_DIMENSIONS * 20));
+        rooms.add(new Room(0, STARSHIP_RANDOM.nextInt(-6, 12) * PixelStar.PIXEL_DIMENSIONS * 40,
+                STARSHIP_RANDOM.nextInt(3, 6) * PixelStar.PIXEL_DIMENSIONS * 40,
+                STARSHIP_RANDOM.nextInt(3, 6) * PixelStar.PIXEL_DIMENSIONS * 40));
     }
 
     /**
@@ -107,15 +111,29 @@ public class Starship {
     private void makeMapSymmetric() {
         int startingNumberOfRooms = rooms.size();
         for (int i = 0; i < startingNumberOfRooms; i++) {
-            if (rooms.get(i).x == 0) {
-                rooms.get(i).x = -rooms.get(i).width;
-                rooms.get(i).width *= 2;
+            if (rooms.get(i).area.x == 0) {
+                rooms.get(i).area.x = -rooms.get(i).area.width;
+                rooms.get(i).area.width *= 2;
             } else {
-                rooms.add(new Rectangle(-rooms.get(i).x - rooms.get(i).width,
-                        rooms.get(i).y,
-                        rooms.get(i).width,
-                        rooms.get(i).height));
+                rooms.add(new Room(-rooms.get(i).area.x - rooms.get(i).area.width,
+                        rooms.get(i).area.y,
+                        rooms.get(i).area.width,
+                        rooms.get(i).area.height));
             }
+        }
+    }
+
+    /**
+     * Function to add a central hallway to the ship, that joins all the rooms;
+     * (must be called before the makeMapSymmetric method)
+     */
+    private void addCentralHallway() {
+        List<Room> centralRooms = rooms.stream().filter(room -> room.area.x == 0).
+                sorted((r1,r2) -> Float.compare(r1.area.y, r2.area.y)).collect(Collectors.toList());
+        for(int i = 0; i < centralRooms.size() - 1; i++) {
+            rooms.add(new Room(0, centralRooms.get(i).area.y + centralRooms.get(i).area.height,
+                    PixelStar.PIXEL_DIMENSIONS * 40,
+                    centralRooms.get(i + 1).area.y - (centralRooms.get(i).area.y + centralRooms.get(i).area.height)));
         }
     }
 }

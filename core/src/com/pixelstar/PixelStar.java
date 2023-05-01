@@ -103,7 +103,7 @@ public class PixelStar extends ApplicationAdapter {
         PlasmaPistol.plasmaPistolTexture = assetManager.get("plasmaPistol.png");
         PlasmaPistol.plasmaShotTexture = assetManager.get("plasmaShot.png");
 
-        new Starship(45);
+        new Starship(4);
         player = new Player(new Vector2(0, 0));
         addGameObject(player);
     }

@@ -21,12 +21,6 @@ class RectangularObject {
     + update()
 }
 GameObject <|-- RectangularObject
-class Floor {
-    + static Texture floorTexture
-    + Floor(Vector2)
-    + Floor(float,float)
-}
-RectangularObject <|-- Floor
 class Collider {
     <<Interface>>
     + collides(Rectangle) boolean
@@ -40,10 +34,4 @@ class HardObject {
 }
 GameObject <|-- HardObject
 Collider <|-- HardObject
-class Wall {
-    + static Texture wallTexture
-    + Wall(Vector2)
-    + Wall(float, float)
-}
-HardObject <|-- Wall
 ```
