@@ -293,6 +293,9 @@ public class PixelStar extends ApplicationAdapter {
         gameObjectsToAdd.clear();
     }
 
+    /**
+     * Removes all the objects in the gameObjectsToAdd list from the gameObject list
+     */
     private void handleGameObjectsToRemove() {
         for (GameObject object : gameObjectsToRemove) {
             gameObjects.remove(object);
