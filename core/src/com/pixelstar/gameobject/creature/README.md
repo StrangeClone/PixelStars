@@ -7,25 +7,29 @@ friends and enemies, and also the Player class will be son of Creature
 classDiagram
 class Creature {
     <<Abstract>>
+    # int WEAPON_INDEX
     # Vector2 movementDirection
     # float speed
     # List~GameObject~ children
     + Creature(Texture,Vector2,float)
+    + armed() boolean
+    # dropWeapon()
+    # equipWeapon(RangedWeapon)
     + getDimension() float
     + getSpeed() float
     + setSpeed(float)
-    + getPosition() Vector2
     + update()
-    + addChild(GameObject)
+    + die()
+    + setWeapon(PlasmaPistol)
+    + abstract getHandPosition()
+    + Optional~RangedWeapon~ getWeapon()
 }
 class Player {
-    ~ int WEAPON_INDEX
     - static final float PICK_UP_RANGE
+    - static final Vector2 HAND_LOCATION
     + static Texture playerTexture
     + Player(Vector2)
-    + armed() boolean
-    + dropWeapon()
-    + equip(PlasmaPistol)
+    + Vector2 getHandPosition()
 }
 Creature <|-- Player
 class PlayerInputAdapter {
@@ -34,4 +38,14 @@ class PlayerInputAdapter {
     + keyDown() boolean
     + keyUp() boolean
 }
+class OldRobot {
+    - static final float ACTIVATION_RANGE
+    - static final Vector2 HAND_LOCATION
+    + static Texture oldRobotTexture
+    # Creature target
+    + OldRobot(Vector2)
+    + getHandPosition()
+    + update()
+}
+Creature <|-- OldRobot
 ```

@@ -6,10 +6,12 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.gameobject.GameObject;
 import com.pixelstar.gameobject.HardObject;
+import com.pixelstar.gameobject.weapons.RangedWeapon;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 /**
  * Class for enemies, NPCs, player
@@ -17,6 +19,10 @@ import java.util.Objects;
  * @author StrangeClone
  */
 public abstract class Creature extends HardObject {
+    /**
+     * Index of the Player's weapon in the children list
+     */
+    protected final int WEAPON_INDEX = 0;
     /**
      * The direction of the Creature's movement, as a normal vector.
      * It will be (0,0) if the creature isn't moving
@@ -41,7 +47,36 @@ public abstract class Creature extends HardObject {
     public Creature(Texture texture, Vector2 center, float dimension) {
         super(texture, new Rectangle(center.x - dimension / 2, center.y - dimension / 2, dimension, dimension));
         movementDirection = new Vector2(0, 0);
-        children = new ArrayList<>();
+        children = new ArrayList<>(1);
+        children.add(null);
+    }
+
+    /**
+     * @return if the player is equipped with a weapon
+     */
+    public boolean armed() {
+        return children.get(WEAPON_INDEX) != null;
+    }
+
+    /**
+     * Drops the weapon, if the player is carrying one
+     */
+    protected void dropWeapon() {
+        getWeapon().ifPresent(w -> {
+            game.dynamicAddGameObject(w);
+            w.drop();
+            children.set(WEAPON_INDEX, null);
+        });
+    }
+
+    /**
+     * Equips a weapon
+     * @param holdable the weapon
+     */
+    protected void equip(RangedWeapon holdable) {
+        game.dynamicRemoveGameObject(holdable);
+        children.set(WEAPON_INDEX, holdable);
+        holdable.pickUp(this);
     }
 
     public float getDimension() {
@@ -89,7 +124,34 @@ public abstract class Creature extends HardObject {
         super.update();
     }
 
-    public void addChild(GameObject newChild) {
-        children.add(newChild);
+    /**
+     * Kills this creature, dropping its equipment
+     */
+    public void die() {
+        dropWeapon();
+    }
+
+    /**
+     * Sets the weapon held by this creature
+     * @param weapon a weapon
+     */
+    public void setWeapon(RangedWeapon weapon) {
+        children.set(WEAPON_INDEX, weapon);
+    }
+
+    /**
+     * @return the position of the hand of this creature;
+     * Used to correctly set the position of the weapons
+     */
+    public abstract Vector2 getHandPosition();
+
+    /**
+     * @return the weapon held by this character
+     */
+    public Optional<RangedWeapon> getWeapon() {
+        if(children.get(WEAPON_INDEX) instanceof RangedWeapon) {
+            return Optional.of((RangedWeapon) children.get(WEAPON_INDEX));
+        }
+        return Optional.empty();
     }
 }

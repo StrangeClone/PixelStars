@@ -4,6 +4,7 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 import com.pixelstar.gameobject.GameObject;
+import com.pixelstar.gameobject.creature.OldRobot;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -41,6 +42,7 @@ public class Room {
         generateWall(area.x - TILE, area.y - TILE, area.width + 2 *TILE, true);
         generateWall(area.x - TILE, area.y - TILE, area.height + 2 * TILE, false);
         generateWall(area.x + area.width, area.y - TILE, area.height + 2 * TILE, false);
+        GameObject.game.addGameObject(new OldRobot(area.getCenter(new Vector2(0,0))));
     }
 
     /**

@@ -13,7 +13,6 @@ import com.pixelstar.gameobject.GameObject;
  * @author StrangeClone
  */
 public class Projectile extends GameObject {
-    final Texture TEXTURE;
     /**
      * The Projectile current position
      */
@@ -26,9 +25,13 @@ public class Projectile extends GameObject {
      * The projectile position
      */
     float speed;
+    /**
+     * The texture region of this projectile
+     */
+    TextureRegion textureRegion;
 
     Projectile(Texture texture, Vector2 position, Vector2 direction, float speed) {
-        this.TEXTURE = texture;
+        this.textureRegion = new TextureRegion(texture);
         this.position = position;
         this.direction = new Vector2();
         setDirection(direction);
@@ -52,12 +55,12 @@ public class Projectile extends GameObject {
     public void update() {
         float delta = Gdx.graphics.getDeltaTime();
         move(direction.x * speed * delta, direction.y * speed * delta);
-        game.getBatch().draw(new TextureRegion(TEXTURE),
+        game.getBatch().draw(textureRegion,
                 position.x,
                 position.y,
                 0,0,
-                TEXTURE.getWidth() * PixelStar.PIXEL_DIMENSIONS,
-                TEXTURE.getHeight() * PixelStar.PIXEL_DIMENSIONS,
+                textureRegion.getTexture().getWidth() * PixelStar.PIXEL_DIMENSIONS,
+                textureRegion.getTexture().getHeight() * PixelStar.PIXEL_DIMENSIONS,
                 1,
                 1,
                 direction.angleDeg() - 90.f);

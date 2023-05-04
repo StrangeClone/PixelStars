@@ -11,15 +11,17 @@ import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.*;
+import com.pixelstar.gameobject.creature.Creature;
+import com.pixelstar.gameobject.creature.OldRobot;
 import com.pixelstar.gameobject.creature.Player;
 import com.pixelstar.gameobject.weapons.Holdable;
+import com.pixelstar.gameobject.weapons.LaserPistol;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
 import com.pixelstar.terrain.Floor;
 import com.pixelstar.terrain.Starship;
 import com.pixelstar.terrain.Wall;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * Application class
@@ -37,6 +39,14 @@ public class PixelStar extends ApplicationAdapter {
      * List of game objects that will be rendered in the screen
      */
     List<GameObject> gameObjects;
+    /**
+     * GameObjects to remove from the arrays during a frame
+     */
+    List<GameObject> gameObjectsToRemove;
+    /**
+     * GameObjects to add to the arrays during a frame
+     */
+    List<GameObject> gameObjectsToAdd;
     /**
      * List of references to all GameObjects that can collide with each other
      */
@@ -78,8 +88,13 @@ public class PixelStar extends ApplicationAdapter {
         assetManager.load("player.png", Texture.class);
         assetManager.load("plasmaPistol.png", Texture.class);
         assetManager.load("plasmaShot.png", Texture.class);
+        assetManager.load("oldRobot.png", Texture.class);
+        assetManager.load("laserShot.png", Texture.class);
+        assetManager.load("laserPistol.png", Texture.class);
 
         gameObjects = new ArrayList<>();
+        gameObjectsToRemove = new ArrayList<>();
+        gameObjectsToAdd = new ArrayList<>();
         colliders = new ArrayList<>();
         holdableList = new ArrayList<>();
 
@@ -93,7 +108,6 @@ public class PixelStar extends ApplicationAdapter {
      * Function called when the asset manager has finished to load the assets, to generate the scene
      */
     private void completeLoading() {
-        loadingCompleted = true;
 
         Floor.floorTexture = assetManager.get("floor.png");
         Floor.floorTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
@@ -102,20 +116,26 @@ public class PixelStar extends ApplicationAdapter {
         Player.playerTexture = assetManager.get("player.png");
         PlasmaPistol.plasmaPistolTexture = assetManager.get("plasmaPistol.png");
         PlasmaPistol.plasmaShotTexture = assetManager.get("plasmaShot.png");
+        OldRobot.oldRobotTexture = assetManager.get("oldRobot.png");
+        LaserPistol.laserShotTexture = assetManager.get("laserShot.png");
+        LaserPistol.laserPistolTexture = assetManager.get("laserPistol.png");
 
-        new Starship(4);
         player = new Player(new Vector2(0, 0));
+        new Starship(4);
         addGameObject(player);
+        sortGameObjects();
+
+        loadingCompleted = true;
     }
 
     @Override
     public void render() {
-        if(!loadingCompleted && assetManager.update()) {
+        if (!loadingCompleted && assetManager.update()) {
             completeLoading();
         }
 
         ScreenUtils.clear(Color.BLACK);
-        if(player != null) {
+        if (player != null) {
             camera.position.set(player.getPosition(), 0);
             camera.update();
         }
@@ -123,6 +143,8 @@ public class PixelStar extends ApplicationAdapter {
         batch.begin();
         gameObjects.forEach(GameObject::update);
         batch.end();
+        handleGameObjectsToAdd();
+        handleGameObjectsToRemove();
     }
 
     @Override
@@ -146,6 +168,10 @@ public class PixelStar extends ApplicationAdapter {
         camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
     }
 
+    public Player getPlayer() {
+        return player;
+    }
+
     public SpriteBatch getBatch() {
         return batch;
     }
@@ -154,19 +180,42 @@ public class PixelStar extends ApplicationAdapter {
      * @param rectangle a rectangle
      * @return true if the rectangle collides with one of the Colliders of this class
      */
-    public boolean checkCollision(final Rectangle rectangle) {
+    public boolean checkCollision(Rectangle rectangle) {
         return colliders.stream().anyMatch(c -> c.collides(rectangle));
     }
+
     /**
+     * Checks if the specified point collides with a Collider, and, if it does, returns the collider
      * @param point a point
-     * @return true if the point collides with one of the Colliders of this class
+     * @return an optional that contains the collider, or null if there's no collision
      */
-    public boolean checkCollision(Vector2 point) {
-        return colliders.stream().anyMatch(c -> c.collides(point));
+    public Optional<Collider> getCollider(Vector2 point) {
+        return colliders.stream().filter(c -> c.collides(point)).findAny();
+    }
+
+    /**
+     * @param watcher the Creature that watch
+     * @param target the Creature that is watched
+     * @return if something is blocking the view between the two creatures
+     */
+    public boolean blockedView(Creature watcher, Creature target) {
+        Vector2 wPosition = watcher.getPosition();
+        Vector2 tPosition = target.getPosition();
+        int dist = (int)Vector2.dst(wPosition.x, wPosition.y, tPosition.x, tPosition.y);
+        float dx = (tPosition.x - wPosition.x) / dist;
+        float dy = (tPosition.y - wPosition.y) / dist;
+        for(int i = 0; i < dist; i++) {
+            Optional<Collider> c = getCollider(new Vector2(wPosition.x + i * dx, wPosition.y + i * dy));
+            if(c.isPresent() && c.get() != watcher && c.get() != target) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * if under the specified position of the screen there's a holdable GameObject
+     *
      * @param screenX The x coordinate, origin is in the upper left corner
      * @param screenY The y coordinate, origin is in the upper left corner
      * @return the selected holdable, or null if there's no holdable in the specified point
@@ -181,36 +230,80 @@ public class PixelStar extends ApplicationAdapter {
 
     /**
      * Adds a GameObject, updating also the collider and holdable list, if necessary.
-     * Then, sorts the objects so that colliders will be rendered after non colliders
+     * Can't be called after completeLoading method, because altering gameObject list during a frame can cause
+     * ConcurrentModificationExceptions;
      *
      * @param object the GameObject to add
      */
     public void addGameObject(GameObject object) {
+        if(loadingCompleted) {
+            throw new IllegalStateException("addGameObject(GameObject) method can't be used after the loading has been completed");
+        }
         gameObjects.add(object);
         if (object instanceof Collider) {
             colliders.add((Collider) object);
         }
-        if(object instanceof Holdable) {
+        if (object instanceof Holdable) {
             holdableList.add((Holdable) object);
         }
-        sortGameObjects();
     }
 
     /**
-     * Removes a GameObject, updating also the collider and holdable list, if necessary.
-     * Then, sorts the objects so that colliders will be rendered after non colliders
+     * Removes a GameObject from the gameObject list. Actually, the real call to remove method will be done at the end
+     * of the frame, to avoid ConcurrentModificationExceptions.
+     * Can't be used before the completeLoading method;
      *
-     * @param object the GameObject to remove
+     * @param object the object to remove
      */
-    public void removeGameObject(GameObject object) {
-        gameObjects.remove(object);
-        if(object instanceof Collider) {
-            colliders.remove((Collider) object);
+    public void dynamicRemoveGameObject(GameObject object) {
+        if(!loadingCompleted) {
+            throw new IllegalStateException("dynamicRemoveGameObject(GameObject) method can't be used before the loading has been completed");
         }
-        if(object instanceof Holdable) {
-            holdableList.remove((Holdable) object);
+        gameObjectsToRemove.add(object);
+    }
+
+    /**
+     * Adds a GameObject to the gameObject list. Actually, the real call to add method will be done at the end
+     * of the frame, to avoid ConcurrentModificationExceptions.
+     * Can't be used before the completeLoading method;
+     *
+     * @param object the object to add
+     */
+    public void dynamicAddGameObject(GameObject object) {
+        if(!loadingCompleted) {
+            throw new IllegalStateException("dynamicAddGameObject(GameObject) method can't be used before the loading has been completed");
+        }
+        gameObjectsToAdd.add(object);
+    }
+
+    /**
+     * Puts all the objects in the gameObjectsToAdd list in the gameObject list
+     */
+    private void handleGameObjectsToAdd() {
+        for(GameObject object : gameObjectsToAdd) {
+            gameObjects.add(object);
+            if(object instanceof Collider) {
+                colliders.add((Collider) object);
+            }
+            if(object instanceof Holdable) {
+                holdableList.add((Holdable) object);
+            }
         }
         sortGameObjects();
+        gameObjectsToAdd.clear();
+    }
+
+    private void handleGameObjectsToRemove() {
+        for (GameObject object : gameObjectsToRemove) {
+            gameObjects.remove(object);
+            if (object instanceof Collider) {
+                colliders.remove((Collider) object);
+            }
+            if (object instanceof Holdable) {
+                holdableList.remove((Holdable) object);
+            }
+        }
+        gameObjectsToRemove.clear();
     }
 
     /**
@@ -218,13 +311,13 @@ public class PixelStar extends ApplicationAdapter {
      */
     private void sortGameObjects() {
         gameObjects.sort((o1, o2) -> {
-            if(o1 instanceof Collider) {
-                if(o2 instanceof Collider) {
+            if (o1 instanceof Collider) {
+                if (o2 instanceof Collider) {
                     return 0;
-                }else {
+                } else {
                     return 1;
                 }
-            }else if(o2 instanceof Collider){
+            } else if (o2 instanceof Collider) {
                 return -1;
             }
             return 0;

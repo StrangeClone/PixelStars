@@ -16,12 +16,14 @@ class Starship{
     - addCentralHallway()
 }
 class Room {
-    - Rectangle area
+    ~ final static float TILE
+    ~ Rectangle area
+    ~ List~Room~ nearRooms
     + Room(float,float,float,float)
     + generate()
     - generateWall(float,float,float,boolean)
-    - nearTo(Room) boolean
     ~ static setNearRooms()
+    - nearTo(Room) boolean
 }
 class Floor {
     + static Texture floorTexture

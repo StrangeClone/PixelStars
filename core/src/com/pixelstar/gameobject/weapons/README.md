@@ -11,24 +11,40 @@ class Holdable {
    contains(Vector2) boolean
    held() boolean
 }
-class PlasmaPistol {
-    - final List~Projectile~ projectiles
-    + static Texture plasmaShotTexture
-    + static Texture plasmaPistolTexture
+class RangedWeapon {
+    <<Abstract>>
+    - final List~Projectile~ PROJECTILES
+    - final Texture PROJECTILE_TEXTURE
     - Creature holder
+    - long reloadTime
+    - long lastShootTime
+    + RangedWeapon(Texture,Texture,Creature)
+    + setReloadTime(long)
     + held() boolean
     + drop()
     + pickUp(Creature)
-    + PlasmaPistol(Creature)
+    + contains(Vector2) boolean
     + shoot(Vector2)
     + update()
 }
-Holdable <|-- PlasmaPistol
+Holdable <|-- RangedWeapon
+class PlasmaPistol {
+    + static Texture plasmaShotTexture
+    + static Texture plasmaPistolTexture
+    + PlasmaPistol(Creature)
+}
+RangedWeapon <|-- PlasmaPistol
+class LaserPistol {
+    + static Texture laserPistolTexture
+    + static Texture laserShotTexture
+    + LaserPistol(Creature)
+}
+RangedWeapon <|-- LaserPistol
 class Projectile {
-    ~ final Texture TEXTURE
     ~ Vector2 position
     ~ Vector2 direction
     ~ float speed
+    ~ TextureRegion textureRegion
     + Projectile(Texture, Vector2, Vector2, float)
     + setSpeed(float)
     + setDirection(Vector2)
@@ -37,5 +53,5 @@ class Projectile {
     + getPosition() Vector2
     + move(float, float)
 }
-PlasmaPistol <-- Projectile
+RangedWeapon <-- Projectile
 ```

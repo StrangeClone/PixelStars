@@ -8,6 +8,7 @@ import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 import com.pixelstar.gameobject.weapons.Holdable;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
+import com.pixelstar.gameobject.weapons.RangedWeapon;
 
 /**
  * Avatar of the player
@@ -16,13 +17,13 @@ import com.pixelstar.gameobject.weapons.PlasmaPistol;
  */
 public class Player extends Creature {
     /**
-     * Index of the Player's weapon in the children list
-     */
-    private final int WEAPON_INDEX = 0;
-    /**
      * maximum distance
      */
     private final static float PICK_UP_RANGE = 100.f;
+    /**
+     * Position of the hand of a player
+     */
+    private final static Vector2 HAND_LOCATION = new Vector2(10, 0);
     /**
      * Player's texture
      */
@@ -34,28 +35,14 @@ public class Player extends Creature {
      * @param center the (initial) center of the player
      */
     public Player(Vector2 center) {
-        super(playerTexture, center, PixelStar.PIXEL_DIMENSIONS * 32);
+        super(playerTexture, center, PixelStar.PIXEL_DIMENSIONS * playerTexture.getWidth());
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
         setSpeed(400);
-        addChild(new PlasmaPistol(this));
+        setWeapon(new PlasmaPistol(this));
     }
 
-    private boolean armed() {
-        return children.get(WEAPON_INDEX) != null;
-    }
-
-    private void dropWeapon() {
-        game.addGameObject(children.get(WEAPON_INDEX));
-        if (children.get(WEAPON_INDEX) instanceof Holdable) {
-            ((Holdable) children.get(WEAPON_INDEX)).drop();
-        }
-        children.set(WEAPON_INDEX, null);
-    }
-
-    private void equip(PlasmaPistol holdable) {
-        game.removeGameObject(holdable);
-        children.set(WEAPON_INDEX, holdable);
-        holdable.pickUp(this);
+    public Vector2 getHandPosition() {
+        return HAND_LOCATION;
     }
 
     private class PlayerInputAdapter extends InputAdapter {
@@ -72,17 +59,17 @@ public class Player extends Creature {
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
             if (button == Input.Buttons.LEFT) {
-                if (armed() && children.get(WEAPON_INDEX) instanceof PlasmaPistol) {
-                    ((PlasmaPistol) children.get(WEAPON_INDEX)).shoot(
+                if (armed()) {
+                    getWeapon().ifPresent(w -> w.shoot(
                             new Vector2(getPosition().x + screenX - Gdx.graphics.getWidth() / 2.f,
                                     getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
-                    );
+                    ));
                 }
                 Holdable clickedObject = game.gameObjectInScreenPosition(screenX, screenY);
-                if(!armed() && clickedObject instanceof PlasmaPistol) {
-                    PlasmaPistol pistol = (PlasmaPistol) clickedObject;
-                    if(dist(pistol) < PICK_UP_RANGE) {
-                        equip(pistol);
+                if(!armed() && clickedObject instanceof RangedWeapon) {
+                    RangedWeapon weapon = (RangedWeapon) clickedObject;
+                    if(dist(weapon) < PICK_UP_RANGE) {
+                        equip(weapon);
                     }
                 }
             }
