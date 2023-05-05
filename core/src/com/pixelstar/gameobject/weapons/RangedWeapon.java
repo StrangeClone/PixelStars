@@ -105,11 +105,7 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
         if (holder != null && System.currentTimeMillis() - lastShootTime > reloadTime) {
             lastShootTime = System.currentTimeMillis();
             Vector2 direction = new Vector2(target.x - holder.getPosition().x, target.y - holder.getPosition().y);
-            direction.nor();
-            Vector2 projectilePosition = new Vector2(
-                    holder.getPosition().x + direction.x / (float) Math.sqrt(2) * holder.getDimension(),
-                    holder.getPosition().y + direction.y / (float) Math.sqrt(2) * holder.getDimension());
-            PROJECTILES.add(new Projectile(PROJECTILE_TEXTURE, projectilePosition, direction, 500));
+            PROJECTILES.add(new Projectile(PROJECTILE_TEXTURE, holder.getPosition(), direction.nor(), 500));
         }
     }
 
@@ -119,7 +115,7 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
             Projectile p = iterator.next();
             p.update();
             Optional<Collider> collider = game.getCollider(p.position);
-            if (collider.isPresent()) {
+            if (collider.isPresent() && collider.get() != holder) {
                 if(collider.get() instanceof OldRobot) {
                     ((OldRobot) collider.get()).die();
                     game.dynamicRemoveGameObject((OldRobot)collider.get());
