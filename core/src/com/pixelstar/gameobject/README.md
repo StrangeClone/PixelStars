@@ -18,6 +18,9 @@ class RectangularObject {
     # Texture texture
     # Rectangle rectangle
     + RectangularObject(Texture, Rectangle)
+    + RectangularObject(Texture, Vector2)
+    + getPosition() Vector2
+    + move(float,float)
     + update()
 }
 GameObject <|-- RectangularObject
@@ -26,9 +29,15 @@ class Collider {
     + collides(Rectangle) boolean
     + collides(Vector2) boolean
 }
+class Interactive {
+    <<Interface>>
+    + contains(Vector2) boolean
+    + interact(Creature)
+}
 class HardObject {
     <<Abstract>>
     + HardObject (Texture, Rectangle)
+    + HardObject (Texture, Vector2)
     + collides(Rectangle) boolean
     + collides(Vector2) boolean
 }

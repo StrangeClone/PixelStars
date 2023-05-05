@@ -13,10 +13,6 @@ import com.pixelstar.PixelStar;
  */
 public class RectangularObject extends GameObject {
     /**
-     * The texture of this object, that will be rendered on screen
-     */
-    protected final Texture texture;
-    /**
      * The rectangular space that this Object will occupy on the screen
      */
     protected final Rectangle rectangle;
@@ -32,9 +28,25 @@ public class RectangularObject extends GameObject {
      * @param rectangle the rectangular space this Object will take
      */
     public RectangularObject(Texture texture, Rectangle rectangle) {
-        this.texture = texture;
         this.rectangle = rectangle;
-        this.textureRegion = new TextureRegion(texture, 0,0,
+        this.textureRegion = new TextureRegion(texture, 0, 0,
+                rectangle.width / (PixelStar.PIXEL_DIMENSIONS * texture.getWidth()),
+                rectangle.height / (PixelStar.PIXEL_DIMENSIONS * texture.getHeight()));
+    }
+
+    /**
+     * Creates a RectangularObject with the specified texture and coordinates.
+     * Dimensions will be set so that the whole texture will be rendered.
+     *
+     * @param texture        the texture
+     * @param centerPosition the center
+     */
+    public RectangularObject(Texture texture, Vector2 centerPosition) {
+        this.rectangle = new Rectangle(centerPosition.x - texture.getWidth() * PixelStar.PIXEL_DIMENSIONS / 2,
+                centerPosition.y - texture.getHeight() * PixelStar.PIXEL_DIMENSIONS / 2,
+                texture.getWidth() * PixelStar.PIXEL_DIMENSIONS,
+                texture.getHeight() * PixelStar.PIXEL_DIMENSIONS);
+        this.textureRegion = new TextureRegion(texture, 0, 0,
                 rectangle.width / (PixelStar.PIXEL_DIMENSIONS * texture.getWidth()),
                 rectangle.height / (PixelStar.PIXEL_DIMENSIONS * texture.getHeight()));
     }

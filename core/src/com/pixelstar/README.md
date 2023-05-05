@@ -10,7 +10,7 @@ class PixelStar{
     ~ List~GameObject~ gameObjectsToAdd
     ~ List~GameObject~ gameObjectsToRemove
     ~ List~Collider~ colliders
-    ~ List~Holdable~ holdableList
+    ~ List~Interactive~ interactiveList
     ~ Player player
     ~ SpriteBatch batch
     ~ OrthographicCamera camera
@@ -29,7 +29,7 @@ class PixelStar{
     + checkCollision(Vector2) boolean
     + getCollider(Vector2) Optional~Collider~
     + blockedView(Creature,Creature) boolean
-    + gameObjectInScreenPosition(int,int) Holdable
+    + gameObjectInScreenPosition(int,int) Optional~Interactive~
     + addGameObject(GameObject)
     + dynamicRemoveGameObject(GameObject)
     + dynamicAddGameObject(GameObject)

@@ -16,7 +16,7 @@ public class OldRobot extends Creature {
      * The robot will start shooting if its target is inside this range
      */
     private final static float ACTIVATION_RANGE = PixelStar.PIXEL_DIMENSIONS * 200;
-    private final static Vector2 HAND_LOCATION = new Vector2(10, 3);
+    private final static Vector2 HAND_LOCATION = new Vector2(10 * PixelStar.PIXEL_DIMENSIONS, 3 * PixelStar.PIXEL_DIMENSIONS);
     /**
      * The texture of all oldRobots
      */
@@ -31,7 +31,7 @@ public class OldRobot extends Creature {
      * @param center the position
      */
     public OldRobot(Vector2 center) {
-        super(oldRobotTexture, center, PixelStar.PIXEL_DIMENSIONS * 32);
+        super(oldRobotTexture, center);
         setWeapon(new LaserPistol(this));
         target = GameObject.game.getPlayer();
     }

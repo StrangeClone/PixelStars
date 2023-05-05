@@ -11,7 +11,7 @@ class Creature {
     # Vector2 movementDirection
     # float speed
     # List~GameObject~ children
-    + Creature(Texture,Vector2,float)
+    + Creature(Texture,Vector2)
     + armed() boolean
     # dropWeapon()
     # equipWeapon(RangedWeapon)
@@ -20,7 +20,7 @@ class Creature {
     + setSpeed(float)
     + update()
     + die()
-    + setWeapon(PlasmaPistol)
+    # setWeapon(PlasmaPistol)
     + abstract getHandPosition()
     + Optional~RangedWeapon~ getWeapon()
 }

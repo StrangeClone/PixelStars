@@ -6,9 +6,11 @@ import com.badlogic.gdx.InputAdapter;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
-import com.pixelstar.gameobject.weapons.Holdable;
+import com.pixelstar.gameobject.GameObject;
+import com.pixelstar.gameobject.Interactive;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
-import com.pixelstar.gameobject.weapons.RangedWeapon;
+
+import java.util.Optional;
 
 /**
  * Avatar of the player
@@ -23,7 +25,7 @@ public class Player extends Creature {
     /**
      * Position of the hand of a player
      */
-    private final static Vector2 HAND_LOCATION = new Vector2(10, 0);
+    private final static Vector2 HAND_LOCATION = new Vector2(10 * PixelStar.PIXEL_DIMENSIONS, 0);
     /**
      * Player's texture
      */
@@ -35,7 +37,7 @@ public class Player extends Creature {
      * @param center the (initial) center of the player
      */
     public Player(Vector2 center) {
-        super(playerTexture, center, PixelStar.PIXEL_DIMENSIONS * playerTexture.getWidth());
+        super(playerTexture, center);
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
         setSpeed(400);
         setWeapon(new PlasmaPistol(this));
@@ -65,13 +67,12 @@ public class Player extends Creature {
                                     getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
                     ));
                 }
-                Holdable clickedObject = game.gameObjectInScreenPosition(screenX, screenY);
-                if(!armed() && clickedObject instanceof RangedWeapon) {
-                    RangedWeapon weapon = (RangedWeapon) clickedObject;
-                    if(dist(weapon) < PICK_UP_RANGE) {
-                        equip(weapon);
-                    }
-                }
+                Optional<Interactive> clickedObject = game.gameObjectInScreenPosition(screenX, screenY);
+                clickedObject.ifPresent(c -> {
+                   if(c instanceof GameObject && game.getPlayer().dist((GameObject) c) < PICK_UP_RANGE) {
+                       c.interact(game.getPlayer());
+                   }
+                });
             }
             return true;
         }

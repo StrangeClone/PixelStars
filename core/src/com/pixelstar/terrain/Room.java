@@ -8,8 +8,17 @@ import com.pixelstar.gameobject.creature.OldRobot;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
+/**
+ * Class to generate a room, after loading the resources
+ *
+ * @author StrangeClone
+ */
 public class Room {
+    /**
+     * Dimension of a tile
+     */
     final static float TILE = PixelStar.PIXEL_DIMENSIONS * 20;
     /**
      * The area this room will take
@@ -37,12 +46,18 @@ public class Room {
      * Generate the room, its floor and its walls
      */
     void generate() {
+        Random roomRandom = new Random();
+        roomRandom.setSeed((long)area.x * (long)area.width+ (long)area.y * (long)area.height);
         GameObject.game.addGameObject(new Floor(area));
         generateWall(area.x - TILE, area.y + area.height, area.width + 2 * TILE, true);
         generateWall(area.x - TILE, area.y - TILE, area.width + 2 *TILE, true);
         generateWall(area.x - TILE, area.y - TILE, area.height + 2 * TILE, false);
         generateWall(area.x + area.width, area.y - TILE, area.height + 2 * TILE, false);
-        GameObject.game.addGameObject(new OldRobot(area.getCenter(new Vector2(0,0))));
+        if(roomRandom.nextBoolean()) {
+            GameObject.game.addGameObject(new OldRobot(area.getCenter(new Vector2(0,0))));
+        }else {
+            GameObject.game.addGameObject(new Chest(area.getCenter(new Vector2(0,0))));
+        }
     }
 
     /**

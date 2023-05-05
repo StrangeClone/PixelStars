@@ -2,16 +2,12 @@ package com.pixelstar.gameobject.creature;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.gameobject.GameObject;
 import com.pixelstar.gameobject.HardObject;
 import com.pixelstar.gameobject.weapons.RangedWeapon;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Class for enemies, NPCs, player
@@ -38,14 +34,13 @@ public abstract class Creature extends HardObject {
     protected List<GameObject> children;
 
     /**
-     * Creates a Creature, with the specified texture, center and dimensions
+     * Creates a Creature, with the specified texture and center
      *
      * @param texture   the texture of this creature
      * @param center    the (initial) center of this creature
-     * @param dimension the dimensions of this creature (will be used for both width and height)
      */
-    public Creature(Texture texture, Vector2 center, float dimension) {
-        super(texture, new Rectangle(center.x - dimension / 2, center.y - dimension / 2, dimension, dimension));
+    public Creature(Texture texture, Vector2 center) {
+        super(texture, center);
         movementDirection = new Vector2(0, 0);
         children = new ArrayList<>(1);
         children.add(null);
@@ -61,11 +56,11 @@ public abstract class Creature extends HardObject {
     /**
      * Drops the weapon, if the player is carrying one
      */
-    protected void dropWeapon() {
+    public void dropWeapon() {
         getWeapon().ifPresent(w -> {
             game.dynamicAddGameObject(w);
             w.drop();
-            children.set(WEAPON_INDEX, null);
+            setWeapon(null);
         });
     }
 
@@ -73,9 +68,9 @@ public abstract class Creature extends HardObject {
      * Equips a weapon
      * @param holdable the weapon
      */
-    protected void equip(RangedWeapon holdable) {
+    public void equipWeapon(RangedWeapon holdable) {
         game.dynamicRemoveGameObject(holdable);
-        children.set(WEAPON_INDEX, holdable);
+        setWeapon(holdable);
         holdable.pickUp(this);
     }
 
@@ -132,15 +127,7 @@ public abstract class Creature extends HardObject {
     }
 
     /**
-     * Sets the weapon held by this creature
-     * @param weapon a weapon
-     */
-    public void setWeapon(RangedWeapon weapon) {
-        children.set(WEAPON_INDEX, weapon);
-    }
-
-    /**
-     * @return the position of the hand of this creature;
+     * @return the position of the hand of this creature, relative to its center;
      * Used to correctly set the position of the weapons
      */
     public abstract Vector2 getHandPosition();
@@ -153,5 +140,13 @@ public abstract class Creature extends HardObject {
             return Optional.of((RangedWeapon) children.get(WEAPON_INDEX));
         }
         return Optional.empty();
+    }
+
+    /**
+     * Sets the weapon as the specified value
+     * @param weapon a weapon
+     */
+    protected void setWeapon(RangedWeapon weapon) {
+        children.set(WEAPON_INDEX, weapon);
     }
 }

@@ -35,4 +35,18 @@ class Wall {
     + Wall(Vector2)
     + Wall(float, float)
 }
+class Chest {
+    + static Texture chestTexture
+    + static Texture openedChestTexture
+    - boolean opened
+    + Chest(Vector2)
+    + contains(Vector2)
+    + interact(Creature)
+}
+class Unit {
+    + static Texture unitTexture
+    + Unit(Vector2)
+    + contains(Vector2) boolean
+    + interact(Creature)
+}
 ```

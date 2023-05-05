@@ -1,10 +1,10 @@
 package com.pixelstar.gameobject.weapons;
 
 import com.badlogic.gdx.graphics.Texture;
-import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 import com.pixelstar.gameobject.Collider;
+import com.pixelstar.gameobject.Interactive;
 import com.pixelstar.gameobject.RectangularObject;
 import com.pixelstar.gameobject.creature.Creature;
 import com.pixelstar.gameobject.creature.OldRobot;
@@ -19,7 +19,7 @@ import java.util.Optional;
  *
  * @author StrangeClone
  */
-public abstract class RangedWeapon extends RectangularObject implements Holdable {
+public abstract class RangedWeapon extends RectangularObject implements Holdable, Interactive {
     /**
      * The projectiles this weapon has shot
      */
@@ -47,11 +47,8 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
      * @param holder the Creature
      */
     public RangedWeapon(Texture texture, Texture projectileTexture, Creature holder) {
-        super(texture, new Rectangle(
-                holder.getPosition().x - PixelStar.PIXEL_DIMENSIONS * ((float) (texture.getWidth() / 2) - holder.getHandPosition().x),
-                holder.getPosition().y - PixelStar.PIXEL_DIMENSIONS * ((float) (texture.getHeight() / 2) - holder.getHandPosition().y),
-                PixelStar.PIXEL_DIMENSIONS * texture.getWidth(),
-                PixelStar.PIXEL_DIMENSIONS * texture.getHeight()));
+        super(texture, new Vector2(holder.getPosition().x + holder.getHandPosition().x,
+                        holder.getPosition().y + holder.getHandPosition().y));
         this.holder = holder;
         this.PROJECTILE_TEXTURE = projectileTexture;
         PROJECTILES = new ArrayList<>();
@@ -80,14 +77,23 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
     public void pickUp(Creature creature) {
         if (!held()) {
             holder = creature;
-            rectangle.x = holder.getPosition().x - PixelStar.PIXEL_DIMENSIONS * ((float) (texture.getWidth() / 2) - holder.getHandPosition().x);
-            rectangle.y = holder.getPosition().y - PixelStar.PIXEL_DIMENSIONS * ((float) (texture.getHeight() / 2) - holder.getHandPosition().y);
+            rectangle.x = holder.getPosition().x - PixelStar.PIXEL_DIMENSIONS *
+                    (float) (textureRegion.getTexture().getWidth() / 2) + holder.getHandPosition().x;
+            rectangle.y = holder.getPosition().y - PixelStar.PIXEL_DIMENSIONS *
+                    (float) (textureRegion.getTexture().getHeight() / 2) + holder.getHandPosition().y;
         }
     }
 
     @Override
     public boolean contains(Vector2 point) {
         return rectangle.contains(point);
+    }
+
+    @Override
+    public void interact(Creature creature) {
+        if(!creature.armed()) {
+            creature.equipWeapon(this);
+        }
     }
 
     /**

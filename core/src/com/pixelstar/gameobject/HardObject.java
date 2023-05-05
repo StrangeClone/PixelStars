@@ -22,6 +22,17 @@ public abstract class HardObject extends RectangularObject implements Collider {
     }
 
     /**
+     * Creates an HardObject with the specified texture and coordinates.
+     * Dimensions will be set so that the whole texture will be rendered.
+     *
+     * @param texture the texture
+     * @param center  the center
+     */
+    public HardObject(Texture texture, Vector2 center) {
+        super(texture, center);
+    }
+
+    /**
      * @param rectangle a rectangle
      * @return if this Object collides with the specified rectangle
      */

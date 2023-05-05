@@ -17,9 +17,7 @@ import com.pixelstar.gameobject.creature.Player;
 import com.pixelstar.gameobject.weapons.Holdable;
 import com.pixelstar.gameobject.weapons.LaserPistol;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
-import com.pixelstar.terrain.Floor;
-import com.pixelstar.terrain.Starship;
-import com.pixelstar.terrain.Wall;
+import com.pixelstar.terrain.*;
 
 import java.util.*;
 
@@ -52,9 +50,9 @@ public class PixelStar extends ApplicationAdapter {
      */
     List<Collider> colliders;
     /**
-     * List of references to all GameObjects that can be held by a Creature
+     * List of references to all GameObjects with which the player can interact
      */
-    List<Holdable> holdableList;
+    List<Interactive> interactiveList;
     /**
      * Reference to the player
      */
@@ -91,12 +89,15 @@ public class PixelStar extends ApplicationAdapter {
         assetManager.load("oldRobot.png", Texture.class);
         assetManager.load("laserShot.png", Texture.class);
         assetManager.load("laserPistol.png", Texture.class);
+        assetManager.load("chest.png", Texture.class);
+        assetManager.load("openedChest.png", Texture.class);
+        assetManager.load("unit.png", Texture.class);
 
         gameObjects = new ArrayList<>();
         gameObjectsToRemove = new ArrayList<>();
         gameObjectsToAdd = new ArrayList<>();
         colliders = new ArrayList<>();
-        holdableList = new ArrayList<>();
+        interactiveList = new ArrayList<>();
 
         batch = new SpriteBatch();
 
@@ -119,6 +120,9 @@ public class PixelStar extends ApplicationAdapter {
         OldRobot.oldRobotTexture = assetManager.get("oldRobot.png");
         LaserPistol.laserShotTexture = assetManager.get("laserShot.png");
         LaserPistol.laserPistolTexture = assetManager.get("laserPistol.png");
+        Chest.chestTexture = assetManager.get("chest.png");
+        Chest.openedChestTexture = assetManager.get("openedChest.png");
+        Unit.unitTexture = assetManager.get("unit.png");
 
         player = new Player(new Vector2(0, 0));
         new Starship(4);
@@ -220,12 +224,12 @@ public class PixelStar extends ApplicationAdapter {
      * @param screenY The y coordinate, origin is in the upper left corner
      * @return the selected holdable, or null if there's no holdable in the specified point
      */
-    public Holdable gameObjectInScreenPosition(int screenX, int screenY) {
+    public Optional<Interactive> gameObjectInScreenPosition(int screenX, int screenY) {
         Vector2 point = new Vector2(
                 player.getPosition().x + (screenX - Gdx.graphics.getWidth() / 2.f) * zoom,
                 player.getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f) * zoom
         );
-        return holdableList.stream().filter(c -> c.contains(point)).findAny().orElse(null);
+        return interactiveList.stream().filter(c -> c.contains(point)).findAny();
     }
 
     /**
@@ -243,8 +247,8 @@ public class PixelStar extends ApplicationAdapter {
         if (object instanceof Collider) {
             colliders.add((Collider) object);
         }
-        if (object instanceof Holdable) {
-            holdableList.add((Holdable) object);
+        if (object instanceof Interactive) {
+            interactiveList.add((Interactive) object);
         }
     }
 
@@ -285,8 +289,8 @@ public class PixelStar extends ApplicationAdapter {
             if(object instanceof Collider) {
                 colliders.add((Collider) object);
             }
-            if(object instanceof Holdable) {
-                holdableList.add((Holdable) object);
+            if(object instanceof Interactive) {
+                interactiveList.add((Interactive) object);
             }
         }
         sortGameObjects();
@@ -303,7 +307,7 @@ public class PixelStar extends ApplicationAdapter {
                 colliders.remove((Collider) object);
             }
             if (object instanceof Holdable) {
-                holdableList.remove((Holdable) object);
+                interactiveList.remove((Interactive) object);
             }
         }
         gameObjectsToRemove.clear();

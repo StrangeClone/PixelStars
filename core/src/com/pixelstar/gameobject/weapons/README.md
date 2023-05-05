@@ -8,7 +8,6 @@ class Holdable {
    <<Interface>>
    drop()
    pickUp(Creature)
-   contains(Vector2) boolean
    held() boolean
 }
 class RangedWeapon {
@@ -23,6 +22,7 @@ class RangedWeapon {
     + held() boolean
     + drop()
     + pickUp(Creature)
+    + interact(Creature)
     + contains(Vector2) boolean
     + shoot(Vector2)
     + update()
