@@ -24,6 +24,10 @@ public class Chest extends HardObject implements Interactive {
      * If the chest has been opened
      */
     private boolean opened = false;
+    /**
+     * Reference to the unit that this chest contains
+     */
+    Unit chestUnit;
 
     /**
      * Creates a chest in the specified position
@@ -31,6 +35,7 @@ public class Chest extends HardObject implements Interactive {
      */
     public Chest(Vector2 position) {
         super(chestTexture, position);
+        chestUnit = new Unit(new Vector2(rectangle.x, rectangle.y - rectangle.width));
     }
 
     @Override
@@ -44,10 +49,17 @@ public class Chest extends HardObject implements Interactive {
      */
     @Override
     public void interact(Creature creature) {
-        if(!creature.armed() && !opened) {
-            game.dynamicAddGameObject(new Unit(new Vector2(rectangle.x, rectangle.y - rectangle.width)));
+        if(!opened) {
+            game.dynamicAddGameObject(chestUnit);
             textureRegion.setTexture(openedChestTexture);
             opened = true;
         }
+    }
+
+    /**
+     * @return if this chest is opened and the unit is collected
+     */
+    public boolean completed() {
+        return opened && chestUnit.isPicked();
     }
 }

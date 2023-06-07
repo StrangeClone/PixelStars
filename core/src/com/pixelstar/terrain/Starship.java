@@ -1,5 +1,6 @@
 package com.pixelstar.terrain;
 
+import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 
 import java.util.ArrayList;
@@ -13,7 +14,14 @@ import java.util.stream.Collectors;
  * @author StrangeClone
  */
 public class Starship {
+    /**
+     * Starship's random generator
+     */
     static private final Random STARSHIP_RANDOM = new Random();
+    /**
+     * Pixels per every tile
+     */
+    static private final int PXL_PER_TILE = 40;
     /**
      * The rooms of this ship
      */
@@ -27,8 +35,8 @@ public class Starship {
     public Starship(long seed) {
         generateStarship(seed);
         Room.setNearRooms(rooms);
-        for(Room room : rooms) {
-            room.generate();
+        for (Room room : rooms) {
+            room.generate(playerPosition());
         }
     }
 
@@ -44,7 +52,7 @@ public class Starship {
         for (int i = 0; i < nOfRooms; i++) {
             generateRoom();
         }
-        while(!checkOverlappingRooms()){
+        while (!checkOverlappingRooms()) {
             fixRooms();
         }
         addCentralHallway();
@@ -54,7 +62,7 @@ public class Starship {
     /**
      * try to fix the rooms that are overlapping
      */
-    private void fixRooms(){
+    private void fixRooms() {
         for (int i = 0; i < rooms.size(); i++) {
             for (int o = i + 1; o < rooms.size(); o++) {
                 if (rooms.get(i).area.overlaps(rooms.get(o).area)) {
@@ -85,10 +93,10 @@ public class Starship {
     /**
      * @return true if there are overlapping rooms in the starship
      */
-    boolean checkOverlappingRooms(){
-        for(int i = 0; i < rooms.size(); i++){
-            for(int o = i + 1; o < rooms.size(); o++){
-                if(rooms.get(i).area.overlaps(rooms.get(o).area)){
+    boolean checkOverlappingRooms() {
+        for (int i = 0; i < rooms.size(); i++) {
+            for (int o = i + 1; o < rooms.size(); o++) {
+                if (rooms.get(i).area.overlaps(rooms.get(o).area)) {
                     return false;
                 }
             }
@@ -100,9 +108,9 @@ public class Starship {
      * Generate a room, in a random location, with random dimensions
      */
     private void generateRoom() {
-        rooms.add(new Room(0, STARSHIP_RANDOM.nextInt(-6, 12) * PixelStar.PIXEL_DIMENSIONS * 40,
-                STARSHIP_RANDOM.nextInt(3, 6) * PixelStar.PIXEL_DIMENSIONS * 40,
-                STARSHIP_RANDOM.nextInt(3, 6) * PixelStar.PIXEL_DIMENSIONS * 40));
+        rooms.add(new Room(0, STARSHIP_RANDOM.nextInt(-6, 12) * PixelStar.PIXEL_DIMENSIONS * PXL_PER_TILE,
+                STARSHIP_RANDOM.nextInt(4, 6) * PixelStar.PIXEL_DIMENSIONS * PXL_PER_TILE,
+                STARSHIP_RANDOM.nextInt(4, 6) * PixelStar.PIXEL_DIMENSIONS * PXL_PER_TILE, false));
     }
 
     /**
@@ -118,7 +126,7 @@ public class Starship {
                 rooms.add(new Room(-rooms.get(i).area.x - rooms.get(i).area.width,
                         rooms.get(i).area.y,
                         rooms.get(i).area.width,
-                        rooms.get(i).area.height));
+                        rooms.get(i).area.height, false));
             }
         }
     }
@@ -129,12 +137,18 @@ public class Starship {
      */
     private void addCentralHallway() {
         List<Room> centralRooms = rooms.stream().filter(room -> room.area.x == 0).
-                sorted((r1,r2) -> Float.compare(r1.area.y, r2.area.y)).collect(Collectors.toList());
-        for(int i = 0; i < centralRooms.size() - 1; i++) {
+                sorted((r1, r2) -> Float.compare(r1.area.y, r2.area.y)).collect(Collectors.toList());
+        for (int i = 0; i < centralRooms.size() - 1; i++) {
             rooms.add(new Room(0, centralRooms.get(i).area.y + centralRooms.get(i).area.height,
-                    PixelStar.PIXEL_DIMENSIONS * 40,
-                    centralRooms.get(i + 1).area.y - (centralRooms.get(i).area.y + centralRooms.get(i).area.height)));
+                    PixelStar.PIXEL_DIMENSIONS * PXL_PER_TILE,
+                    centralRooms.get(i + 1).area.y - (centralRooms.get(i).area.y + centralRooms.get(i).area.height),
+                    true));
         }
+    }
+
+    public Vector2 playerPosition() {
+        return new Vector2(rooms.get(0).area.getCenter(new Vector2(0, 0)).x,
+                rooms.get(0).area.getCenter(new Vector2(0, 0)).y + 50);
     }
 }
 

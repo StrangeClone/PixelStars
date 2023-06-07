@@ -7,10 +7,7 @@ import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector2;
 import com.pixelstar.PixelStar;
 import com.pixelstar.gameobject.GameObject;
-import com.pixelstar.gameobject.Interactive;
 import com.pixelstar.gameobject.weapons.PlasmaPistol;
-
-import java.util.Optional;
 
 /**
  * Avatar of the player
@@ -21,7 +18,7 @@ public class Player extends Creature {
     /**
      * maximum distance
      */
-    private final static float PICK_UP_RANGE = 100.f;
+    public final static float PICK_UP_RANGE = 100.f;
     /**
      * Position of the hand of a player
      */
@@ -37,17 +34,52 @@ public class Player extends Creature {
      * @param center the (initial) center of the player
      */
     public Player(Vector2 center) {
-        super(playerTexture, center);
+        super(playerTexture, 15, center);
         Gdx.input.setInputProcessor(new PlayerInputAdapter());
         setSpeed(400);
         setWeapon(new PlasmaPistol(this));
+    }
+
+    @Override
+    public void damage(double damages) {
+        super.damage(damages);
+        GameObject.game.updateHP(HP);
+    }
+
+    /**
+     * Sets the position of the player
+     *
+     * @param position the new position of the player
+     */
+    public void setPosition(Vector2 position) {
+        Vector2 previousPosition = new Vector2(rectangle.x, rectangle.y);
+        rectangle.x = position.x;
+        rectangle.y = position.y;
+        children.forEach(o -> o.move(position.x - previousPosition.x, position.y - previousPosition.y));
+    }
+
+    /**
+     * Resets the player to full health
+     */
+    public void reset() {
+        HP = 15;
+        GameObject.game.updateHP(HP);
+        Gdx.input.setInputProcessor(new PlayerInputAdapter());
+    }
+
+    /**
+     * Game Over
+     */
+    @Override
+    public void die() {
+        GameObject.game.gameOver();
     }
 
     public Vector2 getHandPosition() {
         return HAND_LOCATION;
     }
 
-    private class PlayerInputAdapter extends InputAdapter {
+    public class PlayerInputAdapter extends InputAdapter {
         /**
          * If the player clicks and has a weapon, the weapon will shoot in the specified direction.
          * If the player doesn't have a weapon and has clicked a weapon, that weapon will be equipped.
@@ -61,18 +93,12 @@ public class Player extends Creature {
         @Override
         public boolean touchDown(int screenX, int screenY, int pointer, int button) {
             if (button == Input.Buttons.LEFT) {
-                if (armed()) {
+                if (!GameObject.game.manageInteractions(screenX, screenY) && armed()) {
                     getWeapon().ifPresent(w -> w.shoot(
                             new Vector2(getPosition().x + screenX - Gdx.graphics.getWidth() / 2.f,
                                     getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f))
                     ));
                 }
-                Optional<Interactive> clickedObject = game.gameObjectInScreenPosition(screenX, screenY);
-                clickedObject.ifPresent(c -> {
-                   if(c instanceof GameObject && game.getPlayer().dist((GameObject) c) < PICK_UP_RANGE) {
-                       c.interact(game.getPlayer());
-                   }
-                });
             }
             return true;
         }
@@ -128,6 +154,13 @@ public class Player extends Creature {
             return true;
         }
 
+        /**
+         * When the mouse wheel is scrolled
+         *
+         * @param amountX the horizontal scroll amount, negative or positive depending on the direction the wheel was scrolled.
+         * @param amountY the vertical scroll amount, negative or positive depending on the direction the wheel was scrolled.
+         * @return always true
+         */
         @Override
         public boolean scrolled(float amountX, float amountY) {
             if (amountY > 0) {

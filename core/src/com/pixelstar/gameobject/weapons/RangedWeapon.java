@@ -7,12 +7,8 @@ import com.pixelstar.gameobject.Collider;
 import com.pixelstar.gameobject.Interactive;
 import com.pixelstar.gameobject.RectangularObject;
 import com.pixelstar.gameobject.creature.Creature;
-import com.pixelstar.gameobject.creature.OldRobot;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * Weapons that can fire Projectiles
@@ -20,6 +16,7 @@ import java.util.Optional;
  * @author StrangeClone
  */
 public abstract class RangedWeapon extends RectangularObject implements Holdable, Interactive {
+    private final static Random WEAPON_RANDOM = new Random();
     /**
      * The projectiles this weapon has shot
      */
@@ -40,6 +37,8 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
      * Time when the weapon has shot the last projectile
      */
     private long lastShootTime;
+    private double damageAverage = 1;
+    private double damageVariance = 1;
 
     /**
      * Creates a ranged weapon, held by a Creature
@@ -57,6 +56,11 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
 
     public void setReloadTime(long reloadTime) {
         this.reloadTime = reloadTime;
+    }
+
+    public void setDamages(double average, double variance) {
+        damageAverage = Math.max(0, average);
+        damageVariance = Math.max(0, variance);
     }
 
     @Override
@@ -116,9 +120,12 @@ public abstract class RangedWeapon extends RectangularObject implements Holdable
             p.update();
             Optional<Collider> collider = game.getCollider(p.position);
             if (collider.isPresent() && collider.get() != holder) {
-                if(collider.get() instanceof OldRobot) {
-                    ((OldRobot) collider.get()).die();
-                    game.dynamicRemoveGameObject((OldRobot)collider.get());
+                if(collider.get() instanceof Creature) {
+                    Creature creature = (Creature) collider.get();
+                    creature.damage(WEAPON_RANDOM.nextGaussian(damageAverage, damageVariance));
+                    if(((Creature) collider.get()).isDead()) {
+                        game.dynamicRemoveGameObject(creature);
+                    }
                 }
                 iterator.remove();
             }

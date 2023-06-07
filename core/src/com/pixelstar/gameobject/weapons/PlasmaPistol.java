@@ -25,5 +25,6 @@ public class PlasmaPistol extends RangedWeapon {
     public PlasmaPistol(Creature holder) {
         super(plasmaPistolTexture, plasmaShotTexture, holder);
         setReloadTime(750);
+        setDamages(7, 2);
     }
 }

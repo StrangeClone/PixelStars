@@ -29,18 +29,24 @@ public abstract class Creature extends HardObject {
      */
     protected float speed;
     /**
+     * The creature's health points
+     */
+    protected double HP;
+    /**
      * Children GameObjects of this Creature
      */
     protected List<GameObject> children;
 
     /**
-     * Creates a Creature, with the specified texture and center
+     * Creates a Creature, with the specified parameters
      *
-     * @param texture   the texture of this creature
-     * @param center    the (initial) center of this creature
+     * @param texture the texture of this creature
+     * @param HP      the creature's initial health points
+     * @param center  the (initial) center of this creature
      */
-    public Creature(Texture texture, Vector2 center) {
+    public Creature(Texture texture, double HP, Vector2 center) {
         super(texture, center);
+        this.HP = HP;
         movementDirection = new Vector2(0, 0);
         children = new ArrayList<>(1);
         children.add(null);
@@ -66,16 +72,13 @@ public abstract class Creature extends HardObject {
 
     /**
      * Equips a weapon
+     *
      * @param holdable the weapon
      */
     public void equipWeapon(RangedWeapon holdable) {
         game.dynamicRemoveGameObject(holdable);
         setWeapon(holdable);
         holdable.pickUp(this);
-    }
-
-    public float getDimension() {
-        return rectangle.width;
     }
 
     public float getSpeed() {
@@ -120,6 +123,26 @@ public abstract class Creature extends HardObject {
     }
 
     /**
+     * Inflict a damage to this creature
+     *
+     * @param damages the HP that will be deducted
+     */
+    public void damage(double damages) {
+        HP = Math.min(HP, HP - damages);
+        if (isDead()) {
+            die();
+        }
+    }
+
+    public double getHP() {
+        return HP;
+    }
+
+    public boolean isDead() {
+        return HP <= 0;
+    }
+
+    /**
      * Kills this creature, dropping its equipment
      */
     public void die() {
@@ -136,7 +159,7 @@ public abstract class Creature extends HardObject {
      * @return the weapon held by this character
      */
     public Optional<RangedWeapon> getWeapon() {
-        if(children.get(WEAPON_INDEX) instanceof RangedWeapon) {
+        if (children.get(WEAPON_INDEX) instanceof RangedWeapon) {
             return Optional.of((RangedWeapon) children.get(WEAPON_INDEX));
         }
         return Optional.empty();
@@ -144,6 +167,7 @@ public abstract class Creature extends HardObject {
 
     /**
      * Sets the weapon as the specified value
+     *
      * @param weapon a weapon
      */
     protected void setWeapon(RangedWeapon weapon) {

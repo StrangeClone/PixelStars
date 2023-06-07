@@ -6,9 +6,16 @@ import com.badlogic.gdx.assets.AssetManager;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.math.Rectangle;
 import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.Group;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.ChangeListener;
+import com.badlogic.gdx.utils.Align;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.pixelstar.gameobject.*;
 import com.pixelstar.gameobject.creature.Creature;
@@ -20,6 +27,7 @@ import com.pixelstar.gameobject.weapons.PlasmaPistol;
 import com.pixelstar.terrain.*;
 
 import java.util.*;
+import java.util.List;
 
 /**
  * Application class
@@ -33,6 +41,26 @@ public class PixelStar extends ApplicationAdapter {
      */
     public static final float PIXEL_DIMENSIONS = 2.5f;
 
+    /**
+     * Stage to render widgets like labels, buttons and so on
+     */
+    Stage stage;
+    /**
+     * Table that contains the score label
+     */
+    Table widgetTable;
+    /**
+     * Labels that displays the score and the player's health
+     */
+    Label scoreLabel;
+    /**
+     * Group that will be shown when a level is completed or when there's a game over
+     */
+    Group nextGameMessage;
+    /**
+     * The player's score
+     */
+    int score = 0;
     /**
      * List of game objects that will be rendered in the screen
      */
@@ -74,7 +102,14 @@ public class PixelStar extends ApplicationAdapter {
      * Manager of the assets of this game
      */
     AssetManager assetManager;
+    /**
+     * If the loading has been completed
+     */
     boolean loadingCompleted = false;
+    /**
+     * If the game is over or paused
+     */
+    boolean gameOver = false;
 
     @Override
     public void create() {
@@ -93,6 +128,18 @@ public class PixelStar extends ApplicationAdapter {
         assetManager.load("openedChest.png", Texture.class);
         assetManager.load("unit.png", Texture.class);
 
+        camera = new OrthographicCamera();
+
+        stage = new Stage();
+
+        widgetTable = new Table();
+        widgetTable.setBounds(10, 10, 200, 200);
+        stage.addActor(widgetTable);
+
+        scoreLabel = new Label("Score: 0\nHealth: 15/15", new Label.LabelStyle(new BitmapFont(), Color.CYAN));
+        scoreLabel.setBounds(30, 40, widgetTable.getWidth() - 20, 20);
+        widgetTable.addActor(scoreLabel);
+
         gameObjects = new ArrayList<>();
         gameObjectsToRemove = new ArrayList<>();
         gameObjectsToAdd = new ArrayList<>();
@@ -100,9 +147,6 @@ public class PixelStar extends ApplicationAdapter {
         interactiveList = new ArrayList<>();
 
         batch = new SpriteBatch();
-
-        camera = new OrthographicCamera();
-        camera.setToOrtho(false, Gdx.graphics.getWidth() * zoom, Gdx.graphics.getHeight() * zoom);
     }
 
     /**
@@ -125,8 +169,9 @@ public class PixelStar extends ApplicationAdapter {
         Unit.unitTexture = assetManager.get("unit.png");
 
         player = new Player(new Vector2(0, 0));
-        new Starship(4);
+        Starship s = new Starship(System.nanoTime());
         addGameObject(player);
+        player.setPosition(s.playerPosition());
         sortGameObjects();
 
         loadingCompleted = true;
@@ -147,13 +192,57 @@ public class PixelStar extends ApplicationAdapter {
         batch.begin();
         gameObjects.forEach(GameObject::update);
         batch.end();
+        stage.act(Gdx.graphics.getDeltaTime());
+        stage.draw();
         handleGameObjectsToAdd();
         handleGameObjectsToRemove();
+        if (gameOver) {
+            nextGame();
+        }
+        if (loadingCompleted && interactiveList.stream().allMatch(o -> {
+            if (o instanceof Chest) {
+                return ((Chest) o).completed();
+            } else {
+                return true;
+            }
+        })) {
+            nextLevel();
+        }
     }
 
     @Override
     public void resize(int width, int height) {
         camera.setToOrtho(false, width * zoom, height * zoom);
+        stage.getViewport().update(width, height, true);
+        stage.getCamera().viewportWidth = width;
+        stage.getCamera().viewportHeight = height;
+        stage.getCamera().position.set(width / 2.f, height / 2.f, 0);
+        stage.getCamera().update();
+    }
+
+    @Override
+    public void dispose() {
+        stage.dispose();
+        batch.dispose();
+    }
+
+    /**
+     * Adds a value to the score
+     *
+     * @param value the points to add
+     */
+    public void score(int value) {
+        score += value;
+        scoreLabel.setText("Score: " + score + "\nHealth: " + (int) player.getHP() + "/15");
+    }
+
+    /**
+     * Updates the player's HP displayed in the score label
+     *
+     * @param HP the new value to display
+     */
+    public void updateHP(double HP) {
+        scoreLabel.setText("Score: " + score + "\nHealth: " + (int) HP + "/15");
     }
 
     /**
@@ -190,6 +279,7 @@ public class PixelStar extends ApplicationAdapter {
 
     /**
      * Checks if the specified point collides with a Collider, and, if it does, returns the collider
+     *
      * @param point a point
      * @return an optional that contains the collider, or null if there's no collision
      */
@@ -199,20 +289,36 @@ public class PixelStar extends ApplicationAdapter {
 
     /**
      * @param watcher the Creature that watch
-     * @param target the Creature that is watched
+     * @param target  the Creature that is watched
      * @return if something is blocking the view between the two creatures
      */
     public boolean blockedView(Creature watcher, Creature target) {
         Vector2 wPosition = watcher.getPosition();
         Vector2 tPosition = target.getPosition();
-        int dist = (int)Vector2.dst(wPosition.x, wPosition.y, tPosition.x, tPosition.y);
+        int dist = (int) Vector2.dst(wPosition.x, wPosition.y, tPosition.x, tPosition.y);
         float dx = (tPosition.x - wPosition.x) / dist;
         float dy = (tPosition.y - wPosition.y) / dist;
-        for(int i = 0; i < dist; i++) {
+        for (int i = 0; i < dist; i++) {
             Optional<Collider> c = getCollider(new Vector2(wPosition.x + i * dx, wPosition.y + i * dy));
-            if(c.isPresent() && c.get() != watcher && c.get() != target) {
+            if (c.isPresent() && c.get() != watcher && c.get() != target) {
                 return true;
             }
+        }
+        return false;
+    }
+
+    /**
+     * Manages all interactions of the player, when the player clicks on the screen
+     *
+     * @param screenX the x position of the cursor
+     * @param screenY the y position of the cursor
+     */
+    public boolean manageInteractions(int screenX, int screenY) {
+        Optional<Interactive> c = gameObjectInScreenPosition(screenX, screenY);
+        if (c.isPresent() && c.get() instanceof GameObject &&
+                GameObject.game.getPlayer().dist((GameObject) c.get()) < Player.PICK_UP_RANGE) {
+            c.get().interact(player);
+            return true;
         }
         return false;
     }
@@ -224,7 +330,7 @@ public class PixelStar extends ApplicationAdapter {
      * @param screenY The y coordinate, origin is in the upper left corner
      * @return the selected holdable, or null if there's no holdable in the specified point
      */
-    public Optional<Interactive> gameObjectInScreenPosition(int screenX, int screenY) {
+    private Optional<Interactive> gameObjectInScreenPosition(int screenX, int screenY) {
         Vector2 point = new Vector2(
                 player.getPosition().x + (screenX - Gdx.graphics.getWidth() / 2.f) * zoom,
                 player.getPosition().y - (screenY - Gdx.graphics.getHeight() / 2.f) * zoom
@@ -240,7 +346,7 @@ public class PixelStar extends ApplicationAdapter {
      * @param object the GameObject to add
      */
     public void addGameObject(GameObject object) {
-        if(loadingCompleted) {
+        if (loadingCompleted) {
             throw new IllegalStateException("addGameObject(GameObject) method can't be used after the loading has been completed");
         }
         gameObjects.add(object);
@@ -260,7 +366,7 @@ public class PixelStar extends ApplicationAdapter {
      * @param object the object to remove
      */
     public void dynamicRemoveGameObject(GameObject object) {
-        if(!loadingCompleted) {
+        if (!loadingCompleted) {
             throw new IllegalStateException("dynamicRemoveGameObject(GameObject) method can't be used before the loading has been completed");
         }
         gameObjectsToRemove.add(object);
@@ -274,7 +380,7 @@ public class PixelStar extends ApplicationAdapter {
      * @param object the object to add
      */
     public void dynamicAddGameObject(GameObject object) {
-        if(!loadingCompleted) {
+        if (!loadingCompleted) {
             throw new IllegalStateException("dynamicAddGameObject(GameObject) method can't be used before the loading has been completed");
         }
         gameObjectsToAdd.add(object);
@@ -284,12 +390,12 @@ public class PixelStar extends ApplicationAdapter {
      * Puts all the objects in the gameObjectsToAdd list in the gameObject list
      */
     private void handleGameObjectsToAdd() {
-        for(GameObject object : gameObjectsToAdd) {
+        for (GameObject object : gameObjectsToAdd) {
             gameObjects.add(object);
-            if(object instanceof Collider) {
+            if (object instanceof Collider) {
                 colliders.add((Collider) object);
             }
-            if(object instanceof Interactive) {
+            if (object instanceof Interactive) {
                 interactiveList.add((Interactive) object);
             }
         }
@@ -311,6 +417,82 @@ public class PixelStar extends ApplicationAdapter {
             }
         }
         gameObjectsToRemove.clear();
+    }
+
+    /**
+     * Cleans the current game and builds a new level
+     */
+    private void nextGame() {
+        gameObjects.clear();
+        gameObjectsToAdd.clear();
+        gameObjectsToRemove.clear();
+        colliders.clear();
+        interactiveList.clear();
+        loadingCompleted = false;
+        Starship s = new Starship(System.nanoTime());
+        player.setPosition(s.playerPosition());
+        player.reset();
+        addGameObject(player);
+        loadingCompleted = true;
+        gameOver = false;
+        sortGameObjects();
+        nextGameMessage.setVisible(false);
+    }
+
+    /**
+     * Displays the message to pass to a new level
+     */
+    public void nextLevel() {
+        Gdx.input.setInputProcessor(stage);
+        showNextGameMessage("Level completed");
+    }
+
+    /**
+     * Displays the message when the game is over
+     */
+    public void gameOver() {
+        Gdx.input.setInputProcessor(stage);
+        showNextGameMessage("Game Over\nScore: " + score);
+    }
+
+    /**
+     * Displays the nextGameMessage (Builds it if necessary)
+     *
+     * @param label the value of the label
+     */
+    private void showNextGameMessage(String label) {
+        if (nextGameMessage == null) {
+            nextGameMessage = new Group();
+            final float width = 100;
+            final float height = 50;
+            nextGameMessage.setBounds(Gdx.graphics.getWidth() / 2.f - width / 2, Gdx.graphics.getHeight() / 2.f - height / 2,
+                    width, height);
+
+            Label message = new Label(label, new Label.LabelStyle(new BitmapFont(), Color.RED));
+            message.setAlignment(Align.center);
+            message.setBounds(0, 30, width, height);
+            nextGameMessage.addActor(message);
+
+            TextButton.TextButtonStyle textButtonStyle = new TextButton.TextButtonStyle();
+            textButtonStyle.font = new BitmapFont();
+            textButtonStyle.fontColor = Color.WHITE;
+            Button button = new TextButton("New Game", textButtonStyle);
+            button.setBounds(0, 0, width, height);
+            stage.addActor(button);
+            button.addListener(new ChangeListener() {
+                @Override
+                public void changed(ChangeEvent event, Actor actor) {
+                    score = 0;
+                    gameOver = true;
+                }
+            });
+            nextGameMessage.addActor(button);
+
+            stage.addActor(nextGameMessage);
+        } else {
+            nextGameMessage.setVisible(true);
+            ((Label) nextGameMessage.getChild(0)).setText(label);
+        }
     }
 
     /**
