@@ -19,5 +19,6 @@ public class LaserPistol extends RangedWeapon {
     public LaserPistol(Creature holder) {
         super(laserPistolTexture, laserShotTexture, holder);
         setReloadTime(500);
+        setDamages(5, 1);
     }
 }

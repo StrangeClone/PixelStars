@@ -10,8 +10,9 @@ class Creature {
     # int WEAPON_INDEX
     # Vector2 movementDirection
     # float speed
+    # double HP
     # List~GameObject~ children
-    + Creature(Texture,Vector2)
+    + Creature(Texture,double,Vector2)
     + armed() boolean
     # dropWeapon()
     # equipWeapon(RangedWeapon)
@@ -19,6 +20,9 @@ class Creature {
     + getSpeed() float
     + setSpeed(float)
     + update()
+    + damage()
+    + getHP() double
+    + isDead() boolean
     + die()
     # setWeapon(PlasmaPistol)
     + abstract getHandPosition()
@@ -29,6 +33,10 @@ class Player {
     - static final Vector2 HAND_LOCATION
     + static Texture playerTexture
     + Player(Vector2)
+    + damage(double)
+    + reset()
+    + die()
+    + setPosition(Vector2)
     + Vector2 getHandPosition()
 }
 Creature <|-- Player
